@@ -48,7 +48,7 @@ export default function HomePage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-background">
+		<div className="min-h-screen">
 			<Header userEmail={user.email} onLogout={handleLogout} />
 			<main className="py-8 px-4">
 				<FlightForm userEmail={user.email} />

@@ -23,18 +23,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
 	children,
-}: Readonly<{
+}: {
 	children: React.ReactNode;
-}>) {
+}) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang="en" className="dark">
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen`}
 			>
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="dark"
-					enableSystem
+					enableSystem={false}
 					disableTransitionOnChange
 				>
 					{children}
