@@ -50,7 +50,7 @@ export default function HomePage() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
 			<Header userEmail={user.email} onLogout={handleLogout} />
-			<main className="py-8">
+			<main className="py-8 px-4">
 				<FlightForm userEmail={user.email} />
 			</main>
 		</div>
