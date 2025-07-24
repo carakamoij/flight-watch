@@ -29,7 +29,7 @@ export function Header({ userEmail, onLogout }: HeaderProps) {
 			initial={{ opacity: 0, y: -20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.3 }}
-			className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+			className="border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60"
 		>
 			<div className="container mx-auto px-4 py-4">
 				<div className="flex items-center justify-between">

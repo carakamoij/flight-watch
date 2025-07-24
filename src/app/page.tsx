@@ -30,14 +30,14 @@ export default function HomePage() {
 
 	if (isLoading) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+			<div className="min-h-screen bg-background flex items-center justify-center">
 				<motion.div
 					initial={{ opacity: 0, scale: 0.8 }}
 					animate={{ opacity: 1, scale: 1 }}
 					className="flex items-center gap-3"
 				>
-					<div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
-					<span className="text-slate-300">Loading...</span>
+					<div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+					<span className="text-muted-foreground">Loading...</span>
 				</motion.div>
 			</div>
 		);
@@ -48,7 +48,7 @@ export default function HomePage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+		<div className="min-h-screen bg-background">
 			<Header userEmail={user.email} onLogout={handleLogout} />
 			<main className="py-8 px-4">
 				<FlightForm userEmail={user.email} />

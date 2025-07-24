@@ -15,7 +15,8 @@ export type Task = {
 
 export type Airport = {
 	name: string;
-	code?: string; // Optional IATA code for reference
+	code: string;
+	city: string;
 };
 
 export type AuthUser = {

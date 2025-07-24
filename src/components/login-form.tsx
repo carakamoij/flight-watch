@@ -62,12 +62,13 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
 	};
 
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3 }}
-			className="flex min-h-screen items-center justify-center p-4"
-		>
+		<div className="min-h-screen bg-background">
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.3 }}
+				className="flex min-h-screen items-center justify-center p-4"
+			>
 			<Card className="w-full max-w-md">
 				<CardHeader className="space-y-1">
 					<motion.div
@@ -177,6 +178,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
 					</motion.div>
 				</CardContent>
 			</Card>
-		</motion.div>
+			</motion.div>
+		</div>
 	);
 }
