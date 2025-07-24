@@ -66,22 +66,25 @@ NEXT_PUBLIC_APP_SECRET=your-very-secure-secret-password-here
 You need to set up n8n workflows with the following endpoints:
 
 #### POST `/webhook/ryanair-schedule`
+
 Creates or updates flight price monitoring tasks. Expected payload:
+
 ```json
 {
-  "email": "user@example.com",
-  "origin": "Luqa",
-  "destination": "Catania", 
-  "outboundDate": "2026-02-02",
-  "returnDate": "2026-02-07",
-  "priceThreshold": 25,
-  "checkOutbound": true,
-  "checkReturn": true,
-  "currency": "EUR"
+	"email": "user@example.com",
+	"origin": "Luqa",
+	"destination": "Catania",
+	"outboundDate": "2026-02-02",
+	"returnDate": "2026-02-07",
+	"priceThreshold": 25,
+	"checkOutbound": true,
+	"checkReturn": true,
+	"currency": "EUR"
 }
 ```
 
 #### GET `/webhook/ryanair-tasks?email=user@example.com`
+
 Returns array of active monitoring tasks for the user.
 
 ### 4. Run Development Server
@@ -104,11 +107,11 @@ npm run export
 ### Deploy to GitHub Pages
 
 1. Enable GitHub Pages in your repository settings
-2. Set source to "GitHub Actions" 
+2. Set source to "GitHub Actions"
 3. The built files will be in the `out/` directory
 4. Set up GitHub secrets for production environment variables:
    - `NEXT_PUBLIC_N8N_BASE_URL`
-   - `NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT` 
+   - `NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT`
    - `NEXT_PUBLIC_N8N_TASKS_ENDPOINT`
    - `NEXT_PUBLIC_APP_SECRET`
 
@@ -169,43 +172,48 @@ flight-watcher-n8n/
 The app follows modern React patterns with shadcn/ui:
 
 ### Form Handling Best Practices
+
 ```tsx
 <FormField
-  control={form.control}
-  name="fieldName"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Label</FormLabel>
-      <FormControl>
-        <Input {...field} />
-      </FormControl>
-      <FormMessage />
-    </FormItem>
-  )}
+	control={form.control}
+	name="fieldName"
+	render={({ field }) => (
+		<FormItem>
+			<FormLabel>Label</FormLabel>
+			<FormControl>
+				<Input {...field} />
+			</FormControl>
+			<FormMessage />
+		</FormItem>
+	)}
 />
 ```
 
 ### Async Operations with Loading States
+
 ```tsx
 const [isPending, startTransition] = useTransition();
 
 const onSubmit = (data: FormData) => {
-  startTransition(async () => {
-    // Async operation
-  });
+	startTransition(async () => {
+		// Async operation
+	});
 };
 ```
 
 ## 🔗 API Integration
 
 ### Airport Data
+
 Currently supports Malta ↔ Catania route:
+
 - **Luqa (MLA)** ↔ **Catania (CTA)**
 - Airport names (not IATA codes) used for RapidAPI compatibility
 
 ### n8n Workflow Requirements
+
 - **Database**: Store task configurations locally in n8n
-- **Scheduler**: Daily/hourly price checks via cron triggers  
+- **Scheduler**: Daily/hourly price checks via cron triggers
 - **Email Service**: Gmail/SMTP for price drop alerts
 - **RapidAPI**: Ryanair3 API for flight price data
 
@@ -214,11 +222,13 @@ Currently supports Malta ↔ Catania route:
 ### Common Issues
 
 1. **Environment Variables Not Loading**
+
    - Check `.env.local` file exists and has correct format
    - Verify all variables start with `NEXT_PUBLIC_`
    - Restart development server after changes
 
 2. **n8n Connection Errors**
+
    - Verify n8n instance is running and accessible
    - Check webhook URLs are correct
    - Test endpoints manually with curl/Postman
@@ -231,6 +241,7 @@ Currently supports Malta ↔ Catania route:
 ### Debug Mode
 
 Set environment variable for additional logging:
+
 ```bash
 SKIP_ENV_VALIDATION=false
 ```
