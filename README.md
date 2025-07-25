@@ -97,28 +97,97 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🏗️ Build & Deploy
 
-### Build for Production
+### Local Development Build
 
 ```bash
-npm run build
-npm run export
+npm run build        # Build for local testing
+npm run deploy       # Build + create .nojekyll file
 ```
 
-### Deploy to GitHub Pages
+### GitHub Pages Deployment
 
-1. Enable GitHub Pages in your repository settings
-2. Set source to "GitHub Actions"
-3. The built files will be in the `out/` directory
-4. Set up GitHub secrets for production environment variables:
-   - `NEXT_PUBLIC_N8N_BASE_URL`
-   - `NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT`
-   - `NEXT_PUBLIC_N8N_TASKS_ENDPOINT`
-   - `NEXT_PUBLIC_APP_SECRET`
+This project is configured for automatic deployment to GitHub Pages using GitHub Actions.
 
-### Manual Deploy
+#### Step 1: Enable GitHub Pages
+
+1. Go to your repository settings: `https://github.com/YOUR_USERNAME/YOUR_REPO/settings`
+2. Navigate to **Pages** in the left sidebar
+3. Under **Source**, select **GitHub Actions**
+
+#### Step 2: Configure Repository Secrets
+
+Add these environment variables as repository secrets:
+
+1. Go to **Settings** → **Secrets and variables** → **Actions**
+2. Click **New repository secret** for each:
+
+```
+NEXT_PUBLIC_N8N_BASE_URL=https://your-n8n-instance.com
+NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT=/webhook/ryanair-schedule
+NEXT_PUBLIC_N8N_TASKS_ENDPOINT=/webhook/ryanair-tasks
+NEXT_PUBLIC_APP_SECRET=your-secure-secret-password
+```
+
+#### Step 3: GitHub Actions Workflow
+
+The project includes `.github/workflows/deploy.yml` with:
+
+- **Automatic builds** on push to `master` branch
+- **Environment variable injection** from repository secrets
+- **Manual static export fallback** (required due to Next.js config conflicts)
+- **Artifact upload** to GitHub Pages
+
+#### Step 4: Custom Domain (Optional)
+
+If using a custom domain:
+
+1. Add your domain in repository **Settings** → **Pages** → **Custom domain**
+2. Create a `CNAME` file in the `public/` directory with your domain
+3. Configure DNS to point to GitHub Pages
+
+#### Step 5: Deployment Verification
+
+After pushing changes:
+
+1. Check the **Actions** tab for build status
+2. Site will be available at:
+   - Default: `https://USERNAME.github.io/REPOSITORY/`
+   - Custom domain: `https://your-custom-domain.com/`
+
+#### Troubleshooting GitHub Pages
+
+**Common Issues & Solutions:**
+
+1. **Build fails with environment variable errors**
+   ```bash
+   # Check that all secrets are set correctly
+   # Environment variables must start with NEXT_PUBLIC_
+   ```
+
+2. **No `out` directory created**
+   ```bash
+   # The workflow includes manual export fallback
+   # Check Actions logs for "Manual static export completed"
+   ```
+
+3. **Config file conflicts**
+   ```bash
+   # Next.js may generate conflicting next.config.js
+   # Workflow handles this automatically
+   ```
+
+4. **Custom domain not working**
+   ```bash
+   # Verify DNS settings
+   # Check CNAME file in public/ directory
+   # Wait for DNS propagation (up to 24 hours)
+   ```
+
+**Build Scripts:**
 
 ```bash
-npm run deploy
+npm run build:github    # Build with GitHub Pages configuration
+npm run deploy:github   # Build + deploy for GitHub Pages
 ```
 
 ## 🔐 Authentication

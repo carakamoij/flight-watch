@@ -37,103 +37,40 @@ jobs:
         with:
           static_site_generator: next
 
-      - name: Debug environment variables
-        run: |
-          echo "Checking environment variables..."
-          echo "NEXT_PUBLIC_N8N_BASE_URL is set: ${{ secrets.NEXT_PUBLIC_N8N_BASE_URL != '' }}"
-          echo "NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT is set: ${{ secrets.NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT != '' }}"
-          echo "NEXT_PUBLIC_N8N_TASKS_ENDPOINT is set: ${{ secrets.NEXT_PUBLIC_N8N_TASKS_ENDPOINT != '' }}"
-          echo "NEXT_PUBLIC_APP_SECRET is set: ${{ secrets.NEXT_PUBLIC_APP_SECRET != '' }}"
-          echo "BASE_URL length: ${#NEXT_PUBLIC_N8N_BASE_URL}"
-          echo "SCHEDULE_ENDPOINT length: ${#NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT}"
-          echo "TASKS_ENDPOINT length: ${#NEXT_PUBLIC_N8N_TASKS_ENDPOINT}"
-          echo "APP_SECRET length: ${#NEXT_PUBLIC_APP_SECRET}"
-        env:
-          NEXT_PUBLIC_N8N_BASE_URL: ${{ secrets.NEXT_PUBLIC_N8N_BASE_URL }}
-          NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT }}
-          NEXT_PUBLIC_N8N_TASKS_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_TASKS_ENDPOINT }}
-          NEXT_PUBLIC_APP_SECRET: ${{ secrets.NEXT_PUBLIC_APP_SECRET }}
-
       - name: Build with Next.js
         run: |
-          echo "Starting build..."
-          npm run build:github || {
-            echo "Build failed with exit code $?"
-            exit 1
-          }
-          echo "Build completed, checking for static export..."
+          echo "Building Next.js application..."
+          npm run build:github
+          
+          # Manual static export fallback (required due to config conflicts)
           if [ ! -d "./out" ]; then
-            echo "No out directory found, checking .next/standalone or server files..."
-            if [ -d ".next/standalone" ]; then
-              echo "Found standalone build, copying to out..."
-              cp -r .next/standalone out
-            elif [ -d ".next/server/app" ]; then
-              echo "Found server app files, manual export needed..."
-              # Create out directory structure
-              mkdir -p out
-              # Copy static assets
-              if [ -d ".next/static" ]; then
-                mkdir -p out/_next/static
-                cp -r .next/static/* out/_next/static/
-              fi
-              # Find and copy HTML files
-              find .next -name "*.html" -type f | while read -r file; do
-                basename_file=$(basename "$file")
-                cp "$file" "out/$basename_file"
-              done
-              # Copy public files
-              if [ -d "public" ]; then
-                cp -r public/* out/ 2>/dev/null || true
-              fi
-              echo "Manual static export completed"
-            else
-              echo "Cannot determine build output structure"
-              ls -la .next/
+            echo "Creating manual static export..."
+            mkdir -p out
+            
+            # Copy static assets
+            if [ -d ".next/static" ]; then
+              mkdir -p out/_next/static
+              cp -r .next/static/* out/_next/static/
             fi
+            
+            # Copy HTML files
+            find .next -name "*.html" -type f | while read -r file; do
+              basename_file=$(basename "$file")
+              cp "$file" "out/$basename_file"
+            done
+            
+            # Copy public files
+            if [ -d "public" ]; then
+              cp -r public/* out/ 2>/dev/null || true
+            fi
+            
+            echo "Manual static export completed"
           fi
         env:
-          # Environment variables for the app
           NEXT_PUBLIC_N8N_BASE_URL: ${{ secrets.NEXT_PUBLIC_N8N_BASE_URL }}
           NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT }}
           NEXT_PUBLIC_N8N_TASKS_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_TASKS_ENDPOINT }}
           NEXT_PUBLIC_APP_SECRET: ${{ secrets.NEXT_PUBLIC_APP_SECRET }}
-
-      - name: Check if out directory exists
-        run: |
-          echo "Checking build output..."
-          echo "Current directory contents:"
-          ls -la ./
-          echo ""
-          echo "Checking Next.js config files:"
-          if [ -f "next.config.js" ]; then
-            echo "=== next.config.js content ==="
-            cat next.config.js
-          fi
-          if [ -f "next.config.ts" ]; then
-            echo "=== next.config.ts content ==="
-            cat next.config.ts
-          fi
-          echo ""
-          echo "Looking for out or .next directories:"
-          find . -maxdepth 2 -type d -name "out" -o -name ".next" | head -10
-          echo ""
-          if [ -d "./out" ]; then
-            echo "✅ out directory exists"
-            ls -la ./out
-          elif [ -d "./.next" ]; then
-            echo "⚠️ .next directory exists but no out directory"
-            echo "This suggests static export didn't happen properly"
-            echo "Checking export marker:"
-            if [ -f "./.next/export-marker.json" ]; then
-              echo "Export marker exists:"
-              cat ./.next/export-marker.json
-            fi
-            echo "Contents of .next:"
-            ls -la ./.next
-          else
-            echo "❌ Neither out nor .next directory exists"
-            echo "Build likely failed completely"
-          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
