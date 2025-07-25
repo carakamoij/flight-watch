@@ -65,6 +65,11 @@ jobs:
             fi
             exit 1
           }
+          echo "Build completed, checking for static export..."
+          if [ ! -d "./out" ]; then
+            echo "No out directory found, trying manual export..."
+            npx next export || echo "Manual export also failed"
+          fi
         env:
           # Environment variables for the app
           NEXT_PUBLIC_N8N_BASE_URL: ${{ secrets.NEXT_PUBLIC_N8N_BASE_URL }}
@@ -74,12 +79,23 @@ jobs:
 
       - name: Check if out directory exists
         run: |
+          echo "Checking build output..."
+          echo "Current directory contents:"
+          ls -la ./
+          echo ""
+          echo "Looking for out or .next directories:"
+          find . -maxdepth 2 -type d -name "out" -o -name ".next" | head -10
+          echo ""
           if [ -d "./out" ]; then
             echo "✅ out directory exists"
             ls -la ./out
+          elif [ -d "./.next" ]; then
+            echo "⚠️ .next directory exists but no out directory"
+            echo "This suggests static export didn't happen"
+            ls -la ./.next
           else
-            echo "❌ out directory does not exist"
-            echo "Build likely failed"
+            echo "❌ Neither out nor .next directory exists"
+            echo "Build likely failed completely"
           fi
 
       - name: Upload artifact
