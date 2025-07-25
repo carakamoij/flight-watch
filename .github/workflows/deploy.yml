@@ -44,9 +44,27 @@ jobs:
           echo "NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT is set: ${{ secrets.NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT != '' }}"
           echo "NEXT_PUBLIC_N8N_TASKS_ENDPOINT is set: ${{ secrets.NEXT_PUBLIC_N8N_TASKS_ENDPOINT != '' }}"
           echo "NEXT_PUBLIC_APP_SECRET is set: ${{ secrets.NEXT_PUBLIC_APP_SECRET != '' }}"
+          echo "BASE_URL length: ${#NEXT_PUBLIC_N8N_BASE_URL}"
+          echo "SCHEDULE_ENDPOINT length: ${#NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT}"
+          echo "TASKS_ENDPOINT length: ${#NEXT_PUBLIC_N8N_TASKS_ENDPOINT}"
+          echo "APP_SECRET length: ${#NEXT_PUBLIC_APP_SECRET}"
+        env:
+          NEXT_PUBLIC_N8N_BASE_URL: ${{ secrets.NEXT_PUBLIC_N8N_BASE_URL }}
+          NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT }}
+          NEXT_PUBLIC_N8N_TASKS_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_TASKS_ENDPOINT }}
+          NEXT_PUBLIC_APP_SECRET: ${{ secrets.NEXT_PUBLIC_APP_SECRET }}
 
       - name: Build with Next.js
-        run: npm run build:github
+        run: |
+          echo "Starting build..."
+          npm run build:github || {
+            echo "Build failed with exit code $?"
+            echo "Checking for common issues..."
+            if [ ! -f ".env.local" ]; then
+              echo "No .env.local file (expected in CI)"
+            fi
+            exit 1
+          }
         env:
           # Environment variables for the app
           NEXT_PUBLIC_N8N_BASE_URL: ${{ secrets.NEXT_PUBLIC_N8N_BASE_URL }}
