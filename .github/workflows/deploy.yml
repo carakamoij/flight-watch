@@ -38,7 +38,7 @@ jobs:
           static_site_generator: next
 
       - name: Build with Next.js
-        run: npm run build
+        run: npm run build:github
         env:
           # Add your environment variables here
           N8N_BASE_URL: ${{ secrets.N8N_BASE_URL }}

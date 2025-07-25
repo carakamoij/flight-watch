@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const isGitHubPages = process.env.GITHUB_ACTIONS === "true";
+
 const nextConfig: NextConfig = {
 	output: "export",
 	trailingSlash: true,
@@ -7,9 +9,8 @@ const nextConfig: NextConfig = {
 		unoptimized: true,
 	},
 	// For GitHub Pages deployment
-	basePath: process.env.NODE_ENV === "production" ? "/flight-watcher-n8n" : "",
-	assetPrefix:
-		process.env.NODE_ENV === "production" ? "/flight-watcher-n8n/" : "",
+	basePath: isGitHubPages ? "/flight-watcher-n8n" : "",
+	assetPrefix: isGitHubPages ? "/flight-watcher-n8n/" : "",
 };
 
 export default nextConfig;
