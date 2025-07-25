@@ -2,6 +2,78 @@
 
 A modern Next.js 15 application for monitoring Ryanair flight prices with email alerts via n8n webhooks. Built with TypeScript, Tailwind CSS, and designed for static export to GitHub Pages.
 
+## ⚡ Quick Start (5 Minutes to Deploy)
+
+**Want to deploy this fast? Follow these steps:**
+
+### 1. Fork & Clone (30 seconds)
+```bash
+# Fork this repository on GitHub, then:
+git clone https://github.com/YOUR_USERNAME/flight-watcher-n8n.git
+cd flight-watcher-n8n
+npm install
+```
+
+### 2. Copy the Working Workflow (30 seconds)
+The `.github/workflows/deploy.yml` is ready to use! It includes:
+- ✅ **Manual export fallback** (handles Next.js config conflicts)
+- ✅ **Environment variable injection**
+- ✅ **Automatic GitHub Pages deployment**
+
+### 3. Set GitHub Secrets (2 minutes)
+Go to your repo **Settings** → **Secrets** → **Actions** and add:
+```
+NEXT_PUBLIC_N8N_BASE_URL=https://your-n8n-instance.com
+NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT=/webhook/ryanair-schedule
+NEXT_PUBLIC_N8N_TASKS_ENDPOINT=/webhook/ryanair-tasks
+NEXT_PUBLIC_APP_SECRET=your-secure-password-123
+```
+
+### 4. Enable GitHub Pages (30 seconds)
+- Go to **Settings** → **Pages**
+- Source: **GitHub Actions**
+- Done!
+
+### 5. Push to Deploy (1 minute)
+```bash
+git add .
+git commit -m "Initial deployment"
+git push origin master
+```
+
+**🎉 Your site deploys automatically!** Check the **Actions** tab for progress.
+
+---
+
+## 🛠️ What Makes This Workflow Bulletproof?
+
+### ✅ **Manual Export Fallback**
+```yaml
+# If Next.js automatic export fails, manual fallback creates static files
+if [ ! -d "./out" ]; then
+  echo "Creating manual static export..."
+  mkdir -p out
+  # Copy static assets, HTML files, public files
+fi
+```
+
+### ✅ **Config Conflict Resolution**
+The workflow handles the common issue where:
+- `next.config.ts` (your source) has `output: "export"`
+- `next.config.js` (generated) conflicts with different settings
+
+### ✅ **Environment Variable Safety**
+- Uses `NEXT_PUBLIC_*` prefixed variables (required for client-side)
+- Validates at build time with `@t3-oss/env-nextjs`
+- Fails fast if variables missing
+
+### ✅ **Cross-Platform Compatibility**
+- Works on Ubuntu runners (bash scripts)
+- Windows-compatible local development
+- Handles path differences automatically
+
+---
+
 ## 🚀 Features
 
 - **Modern Tech Stack**: Next.js 15, React 19, TypeScript, Tailwind CSS
@@ -160,28 +232,40 @@ After pushing changes:
 
 1. **Build fails with environment variable errors**
    ```bash
-   # Check that all secrets are set correctly
-   # Environment variables must start with NEXT_PUBLIC_
+   # ❌ Error: Invalid environment variables
+   # ✅ Fix: Check all secrets are set with NEXT_PUBLIC_ prefix
    ```
 
 2. **No `out` directory created**
    ```bash
-   # The workflow includes manual export fallback
-   # Check Actions logs for "Manual static export completed"
+   # ❌ Error: tar: out: Cannot open: No such file or directory
+   # ✅ Fix: Manual export fallback handles this automatically
    ```
 
 3. **Config file conflicts**
    ```bash
-   # Next.js may generate conflicting next.config.js
-   # Workflow handles this automatically
+   # ❌ Issue: next.config.js vs next.config.ts conflict
+   # ✅ Fix: Workflow uses proper TypeScript config
    ```
 
 4. **Custom domain not working**
    ```bash
-   # Verify DNS settings
-   # Check CNAME file in public/ directory
-   # Wait for DNS propagation (up to 24 hours)
+   # ❌ Issue: 404 on custom domain
+   # ✅ Fix: Verify DNS settings + CNAME file in public/
    ```
+
+5. **Secrets not working**
+   ```bash
+   # ❌ Issue: Environment variables undefined
+   # ✅ Fix: Secrets must be in repository (not organization)
+   #         Name must match exactly (case-sensitive)
+   ```
+
+**Quick Debug Steps:**
+1. Check **Actions** tab for build logs
+2. Look for "Manual static export completed" message
+3. Verify all 4 secrets are set in repository settings
+4. Ensure GitHub Pages source is "GitHub Actions"
 
 **Build Scripts:**
 
@@ -189,6 +273,27 @@ After pushing changes:
 npm run build:github    # Build with GitHub Pages configuration
 npm run deploy:github   # Build + deploy for GitHub Pages
 ```
+
+### 🚀 **Pro Tips for Fast Deployment:**
+
+#### Copy This Exact Workflow Structure:
+```
+.github/
+  workflows/
+    deploy.yml          # ← This file is battle-tested!
+```
+
+#### Essential Files Checklist:
+- ✅ `.github/workflows/deploy.yml` (auto-deployment)
+- ✅ `next.config.ts` (static export config)
+- ✅ `package.json` (with build:github script)
+- ✅ `src/env.mjs` (environment validation)
+- ✅ `public/.nojekyll` (prevents Jekyll processing)
+
+#### Repository Settings Checklist:
+- ✅ **Pages**: Source = "GitHub Actions"
+- ✅ **Secrets**: All 4 environment variables set
+- ✅ **Actions**: Enabled for the repository
 
 ## 🔐 Authentication
 
