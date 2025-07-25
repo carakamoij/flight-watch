@@ -18,5 +18,4 @@ export const env = createEnv({
 		NEXT_PUBLIC_N8N_TASKS_ENDPOINT: process.env.NEXT_PUBLIC_N8N_TASKS_ENDPOINT,
 		NEXT_PUBLIC_APP_SECRET: process.env.NEXT_PUBLIC_APP_SECRET,
 	},
-	skipValidation: !!process.env.SKIP_ENV_VALIDATION,
 });
