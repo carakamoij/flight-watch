@@ -5,19 +5,18 @@ import { LogOut, Plane, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
-import { authService } from "@/lib/auth";
+import { useAuth } from "@/hooks";
 
 interface HeaderProps {
 	userEmail: string;
-	onLogout: () => void;
 }
 
-export function Header({ userEmail, onLogout }: HeaderProps) {
+export function Header({ userEmail }: HeaderProps) {
 	const { theme, setTheme } = useTheme();
+	const { logout } = useAuth();
 
 	const handleLogout = () => {
-		authService.logout();
-		onLogout();
+		logout();
 	};
 
 	const toggleTheme = () => {

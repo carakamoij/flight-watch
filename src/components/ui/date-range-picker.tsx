@@ -41,7 +41,7 @@ export function DateRangePicker({
 						id="date"
 						variant={"outline"}
 						className={cn(
-							"w-full justify-start text-left font-normal h-10 border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-accent/10 hover:text-accent-foreground",
+							"w-full justify-start text-left font-normal h-10 border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-accent hover:ring-2 hover:ring-ring/20 transition-all duration-200",
 							!value && "text-muted-foreground"
 						)}
 						disabled={disabled}
@@ -63,10 +63,13 @@ export function DateRangePicker({
 				</PopoverTrigger>
 				<PopoverContent
 					className="w-auto p-0 bg-popover border-border"
-					align="start"
+					align="center"
+					side="right"
+					sideOffset={4}
+					avoidCollisions={false}
 				>
 					<Calendar
-						initialFocus
+						autoFocus
 						mode="range"
 						defaultMonth={value?.from}
 						selected={value as DateRange}
@@ -76,6 +79,11 @@ export function DateRangePicker({
 						numberOfMonths={2}
 						showOutsideDays={false}
 						fixedWeeks={false}
+						captionLayout="dropdown"
+						startMonth={
+							new Date(new Date().getFullYear(), new Date().getMonth())
+						}
+						endMonth={new Date(new Date().getFullYear() + 5, 11)}
 						disabled={(date) => {
 							if (minDate && date < minDate) return true;
 							if (maxDate && date > maxDate) return true;

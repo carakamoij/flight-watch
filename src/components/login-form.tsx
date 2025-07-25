@@ -25,7 +25,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
-import { authService } from "@/lib/auth";
+import { useAuth } from "@/hooks";
 
 const loginSchema = z.object({
 	email: z.string().email("Please enter a valid email address"),
@@ -34,12 +34,9 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-interface LoginFormProps {
-	onLoginSuccess: () => void;
-}
-
-export function LoginForm({ onLoginSuccess }: LoginFormProps) {
+export function LoginForm() {
 	const [isPending, startTransition] = useTransition();
+	const { login } = useAuth();
 
 	const form = useForm<LoginForm>({
 		resolver: zodResolver(loginSchema),
@@ -52,9 +49,8 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
 	const onSubmit = (data: LoginForm) => {
 		startTransition(async () => {
 			try {
-				await authService.login(data.email, data.password);
+				await login(data.email, data.password);
 				toast.success("Successfully logged in!");
-				onLoginSuccess();
 			} catch (error) {
 				toast.error(error instanceof Error ? error.message : "Login failed");
 			}

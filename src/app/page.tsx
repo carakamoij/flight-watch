@@ -1,32 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 import { LoginForm } from "@/components/login-form";
 import { FlightForm } from "@/components/flight-form";
 import { Header } from "@/components/header";
-import { authService } from "@/lib/auth";
+import { useAuth } from "@/hooks";
 
 export default function HomePage() {
-	const [user, setUser] = useState<{ email: string } | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-
-	useEffect(() => {
-		// Check if user is already authenticated
-		const currentUser = authService.getCurrentUser();
-		setUser(currentUser);
-		setIsLoading(false);
-	}, []);
-
-	const handleLoginSuccess = () => {
-		const currentUser = authService.getCurrentUser();
-		setUser(currentUser);
-	};
-
-	const handleLogout = () => {
-		setUser(null);
-	};
+	const { user, isLoading } = useAuth();
 
 	if (isLoading) {
 		return (
@@ -44,12 +26,12 @@ export default function HomePage() {
 	}
 
 	if (!user) {
-		return <LoginForm onLoginSuccess={handleLoginSuccess} />;
+		return <LoginForm />;
 	}
 
 	return (
 		<div className="min-h-screen">
-			<Header userEmail={user.email} onLogout={handleLogout} />
+			<Header userEmail={user.email} />
 			<main className="py-8 px-4">
 				<FlightForm userEmail={user.email} />
 			</main>

@@ -39,6 +39,7 @@ import {
 import { n8nApi } from "@/lib/api";
 import { airports, defaultSearchParams, getAirportName } from "@/lib/data";
 import type { FlightSearchParams, Task } from "@/lib/types";
+import { Slider } from "./ui/slider";
 
 const flightSchema = z
 	.object({
@@ -73,7 +74,7 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 	const form = useForm<FlightForm>({
 		resolver: zodResolver(flightSchema),
 		defaultValues: {
-			email: userEmail,
+			email: typeof userEmail === "string" ? userEmail : "",
 			origin: "",
 			destination: "",
 			dateRange: {
@@ -149,20 +150,20 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 	};
 
 	return (
-		<div className="max-w-4xl mx-auto p-6">
+		<div className="max-w-4xl mx-auto p-4 pt-2">
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.6 }}
-				className="bg-card/90 backdrop-blur-md rounded-2xl shadow-xl border border-border/50 p-8"
+				className="bg-card/90 backdrop-blur-md rounded-2xl shadow-xl border border-border/50 p-6"
 			>
 				{/* Header */}
-				<div className="flex items-center gap-3 mb-8">
-					<div className="bg-primary/15 w-12 h-12 rounded-full flex items-center justify-center border border-primary/20">
-						<Plane className="w-6 h-6 text-primary" />
+				<div className="flex items-center gap-3 mb-6">
+					<div className="bg-primary/15 w-10 h-10 rounded-full flex items-center justify-center border border-primary/20">
+						<Plane className="w-5 h-5 text-primary" />
 					</div>
 					<div>
-						<h2 className="text-xl font-bold text-foreground">
+						<h2 className="text-lg font-bold text-foreground">
 							Flight Price Monitor
 						</h2>
 						<p className="text-muted-foreground text-sm">
@@ -172,23 +173,23 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 				</div>
 
 				{/* Current Monitoring Tasks */}
-				<div className="mb-8">
-					<h3 className="text-lg font-semibold text-foreground mb-4">
+				<div className="mb-6">
+					<h3 className="text-lg font-semibold text-foreground mb-3">
 						Current Monitoring Tasks
 					</h3>
 
 					{isLoadingTasks ? (
-						<div className="flex items-center justify-center py-8">
-							<Loader2 className="w-6 h-6 animate-spin text-primary" />
+						<div className="flex items-center justify-center py-6">
+							<Loader2 className="w-5 h-5 animate-spin text-primary" />
 							<span className="ml-2 text-muted-foreground">
 								Loading tasks...
 							</span>
 						</div>
 					) : (
-						<div className="space-y-3">
+						<div className="space-y-2">
 							{existingTasks.length === 0 ? (
-								<div className="text-center py-8">
-									<Plane className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+								<div className="text-center py-6">
+									<Plane className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
 									<p className="text-foreground mb-1">
 										No scheduled monitoring tasks found
 									</p>
@@ -200,7 +201,7 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 								existingTasks.map((task, index) => (
 									<div
 										key={index}
-										className="bg-secondary/50 rounded-lg p-4 border border-border"
+										className="bg-secondary/50 rounded-lg p-3 border border-border"
 									>
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-3">
@@ -250,7 +251,7 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 												value={field.value}
 												onValueChange={field.onChange}
 											>
-												<SelectTrigger className="w-full bg-input border-border text-foreground hover:bg-accent">
+												<SelectTrigger className="w-full bg-input border-border text-foreground hover:bg-accent hover:ring-2 hover:ring-ring/20 focus:ring-2 focus:ring-ring transition-all duration-200">
 													<SelectValue placeholder="Select origin" />
 												</SelectTrigger>
 												<SelectContent>
@@ -281,7 +282,7 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 												value={field.value}
 												onValueChange={field.onChange}
 											>
-												<SelectTrigger className="w-full bg-input border-border text-foreground hover:bg-accent">
+												<SelectTrigger className="w-full bg-input border-border text-foreground hover:bg-accent hover:ring-2 hover:ring-ring/20 focus:ring-2 focus:ring-ring transition-all duration-200">
 													<SelectValue placeholder="Select destination" />
 												</SelectTrigger>
 												<SelectContent>
@@ -299,7 +300,7 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 							/>
 						</div>
 
-						{/* Date Range and Email */}
+						{/* Date Range and Price Threshold */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<FormField
 								control={form.control}
@@ -323,24 +324,50 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 									</FormItem>
 								)}
 							/>
-
 							<FormField
 								control={form.control}
-								name="email"
+								name="priceThreshold"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel className="text-foreground flex items-center gap-2">
-											<Mail className="h-4 w-4 text-primary" />
-											Email Address
+											<Euro className="h-4 w-4 text-primary" />
+											Price Threshold (€)
 										</FormLabel>
 										<FormControl>
-											<Input
-												{...field}
-												type="email"
-												placeholder="your@email.com"
-												className="bg-input border-border text-foreground"
-												disabled={isPending}
-											/>
+											{/* Original Input field for price threshold
+											<div className="relative">
+												<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+													€
+												</span>
+												<Input
+													{...field}
+													type="number"
+													placeholder="25"
+													className="pl-8 bg-input border-border text-foreground hover:bg-accent hover:ring-2 hover:ring-ring/20 focus:ring-2 focus:ring-ring transition-all duration-200"
+													disabled={isPending}
+													onChange={(e) =>
+														field.onChange(Number(e.target.value))
+													}
+												/>
+											</div>
+											*/}
+											<div className="flex flex-col gap-2 px-2 py-3">
+												<Slider
+													min={10}
+													max={100}
+													step={1}
+													value={[field.value ?? 25]}
+													onValueChange={([val]) => field.onChange(val)}
+													disabled={isPending}
+												/>
+												<div className="flex justify-between text-xs text-muted-foreground">
+													<span>€10</span>
+													<span>€100</span>
+												</div>
+												<div className="text-center text-sm font-medium text-primary">
+													{field.value ? `€${field.value}` : "€25"}
+												</div>
+											</div>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -348,30 +375,25 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 							/>
 						</div>
 
-						{/* Price Threshold */}
+						{/* Email Address */}
 						<FormField
 							control={form.control}
-							name="priceThreshold"
+							name="email"
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel className="text-foreground flex items-center gap-2">
-										<Euro className="h-4 w-4 text-primary" />
-										Price Threshold (€)
+										<Mail className="h-4 w-4 text-primary" />
+										Email Address
 									</FormLabel>
 									<FormControl>
-										<div className="relative">
-											<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-												€
-											</span>
-											<Input
-												{...field}
-												type="number"
-												placeholder="25"
-												className="pl-8 bg-input border-border text-foreground"
-												disabled={isPending}
-												onChange={(e) => field.onChange(Number(e.target.value))}
-											/>
-										</div>
+										<Input
+											{...field}
+											type="email"
+											placeholder="your@email.com"
+											className="bg-input border-border text-foreground hover:bg-accent hover:ring-2 hover:ring-ring/20 focus:ring-2 focus:ring-ring transition-all duration-200"
+											disabled={isPending}
+											value={field.value || ""}
+										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
