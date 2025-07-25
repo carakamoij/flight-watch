@@ -58,14 +58,14 @@ export function LoginForm() {
 	};
 
 	return (
-		<div className="min-h-screen bg-background">
+		<div className="min-h-screen">
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3 }}
 				className="flex min-h-screen items-center justify-center p-4"
 			>
-				<Card className="w-full max-w-md">
+				<div className="w-full max-w-md bg-gradient-card backdrop-blur-sm border-border/50 shadow-2xl rounded-2xl py-6">
 					<CardHeader className="space-y-1">
 						<motion.div
 							initial={{ scale: 0.8 }}
@@ -87,93 +87,116 @@ export function LoginForm() {
 							<motion.form
 								onSubmit={form.handleSubmit(onSubmit)}
 								className="space-y-4"
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{ delay: 0.2, duration: 0.3 }}
+								initial="hidden"
+								animate="visible"
+								variants={{
+									hidden: {},
+									visible: { transition: { staggerChildren: 0.13 } },
+								}}
 							>
-								<FormField
-									control={form.control}
-									name="email"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Email</FormLabel>
-											<FormControl>
-												<div className="relative">
-													<Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-													<Input
-														{...field}
-														type="email"
-														placeholder="your.email@example.com"
-														className="pl-10"
-														disabled={isPending}
-													/>
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="password"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Secret Password</FormLabel>
-											<FormControl>
-												<div className="relative">
-													<Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-													<Input
-														{...field}
-														type="password"
-														placeholder="Enter secret password"
-														className="pl-10"
-														disabled={isPending}
-													/>
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
+								<motion.div
+									variants={{
+										hidden: { opacity: 0, y: 20 },
+										visible: { opacity: 1, y: 0 },
+									}}
+								>
+									<FormField
+										control={form.control}
+										name="email"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Email</FormLabel>
+												<FormControl>
+													<div className="relative">
+														<Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+														<Input
+															{...field}
+															type="email"
+															name="email"
+															autoComplete="email"
+															placeholder="your.email@example.com"
+															className="pl-10"
+															disabled={isPending}
+														/>
+													</div>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								</motion.div>
 
 								<motion.div
-									whileHover={{ scale: 1.02 }}
-									whileTap={{ scale: 0.98 }}
+									variants={{
+										hidden: { opacity: 0, y: 20 },
+										visible: { opacity: 1, y: 0 },
+									}}
 								>
-									<Button type="submit" className="w-full" disabled={isPending}>
-										{isPending ? (
-											<motion.div
-												initial={{ opacity: 0 }}
-												animate={{ opacity: 1 }}
-												className="flex items-center gap-2"
-											>
-												<Loader2 className="h-4 w-4 animate-spin" />
-												Signing in...
-											</motion.div>
-										) : (
-											<motion.span
-												initial={{ opacity: 0 }}
-												animate={{ opacity: 1 }}
-											>
-												Sign in
-											</motion.span>
+									<FormField
+										control={form.control}
+										name="password"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Secret Password</FormLabel>
+												<FormControl>
+													<div className="relative">
+														<Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+														<Input
+															{...field}
+															type="password"
+															name="password"
+															autoComplete="current-password"
+															placeholder="Enter secret password"
+															className="pl-10"
+															disabled={isPending}
+														/>
+													</div>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
 										)}
-									</Button>
+									/>
+								</motion.div>
+
+								<motion.div
+									variants={{
+										hidden: { opacity: 0, y: 20 },
+										visible: { opacity: 1, y: 0 },
+									}}
+								>
+									<motion.div
+										whileHover={{ scale: 1.02 }}
+										whileTap={{ scale: 0.98 }}
+									>
+										<Button
+											type="submit"
+											className="w-full h-12 mt-2"
+											disabled={isPending}
+										>
+											{isPending ? (
+												<motion.div
+													initial={{ opacity: 0 }}
+													animate={{ opacity: 1 }}
+													className="flex items-center gap-2"
+												>
+													<Loader2 className="h-4 w-4 animate-spin" />
+													Signing in...
+												</motion.div>
+											) : (
+												<motion.span
+													initial={{ opacity: 0 }}
+													animate={{ opacity: 1 }}
+												>
+													Sign in
+												</motion.span>
+											)}
+										</Button>
+									</motion.div>
 								</motion.div>
 							</motion.form>
 						</Form>
-
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ delay: 0.4, duration: 0.3 }}
-							className="mt-6 text-center text-sm text-muted-foreground"
-						>
-							<p>Demo credentials available in development</p>
-						</motion.div>
 					</CardContent>
-				</Card>
+				</div>
 			</motion.div>
 		</div>
 	);

@@ -28,7 +28,7 @@ export function Header({ userEmail }: HeaderProps) {
 			initial={{ opacity: 0, y: -20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.3 }}
-			className="border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60"
+			className="sticky top-0 z-50 border-b border-header-700/50 bg-header/80 backdrop-blur-sm supports-[backdrop-filter]:bg-header-900/80"
 		>
 			<div className="container mx-auto px-4 py-4">
 				<div className="flex items-center justify-between">

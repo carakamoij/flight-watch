@@ -7,6 +7,7 @@ A modern Next.js 15 application for monitoring Ryanair flight prices with email 
 **Want to deploy this fast? Follow these steps:**
 
 ### 1. Fork & Clone (30 seconds)
+
 ```bash
 # Fork this repository on GitHub, then:
 git clone https://github.com/YOUR_USERNAME/flight-watcher-n8n.git
@@ -15,13 +16,17 @@ npm install
 ```
 
 ### 2. Copy the Working Workflow (30 seconds)
+
 The `.github/workflows/deploy.yml` is ready to use! It includes:
+
 - ✅ **Manual export fallback** (handles Next.js config conflicts)
 - ✅ **Environment variable injection**
 - ✅ **Automatic GitHub Pages deployment**
 
 ### 3. Set GitHub Secrets (2 minutes)
+
 Go to your repo **Settings** → **Secrets** → **Actions** and add:
+
 ```
 NEXT_PUBLIC_N8N_BASE_URL=https://your-n8n-instance.com
 NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT=/webhook/ryanair-schedule
@@ -30,11 +35,13 @@ NEXT_PUBLIC_APP_SECRET=your-secure-password-123
 ```
 
 ### 4. Enable GitHub Pages (30 seconds)
+
 - Go to **Settings** → **Pages**
 - Source: **GitHub Actions**
 - Done!
 
 ### 5. Push to Deploy (1 minute)
+
 ```bash
 git add .
 git commit -m "Initial deployment"
@@ -48,6 +55,7 @@ git push origin master
 ## 🛠️ What Makes This Workflow Bulletproof?
 
 ### ✅ **Manual Export Fallback**
+
 ```yaml
 # If Next.js automatic export fails, manual fallback creates static files
 if [ ! -d "./out" ]; then
@@ -58,16 +66,20 @@ fi
 ```
 
 ### ✅ **Config Conflict Resolution**
+
 The workflow handles the common issue where:
+
 - `next.config.ts` (your source) has `output: "export"`
 - `next.config.js` (generated) conflicts with different settings
 
 ### ✅ **Environment Variable Safety**
+
 - Uses `NEXT_PUBLIC_*` prefixed variables (required for client-side)
 - Validates at build time with `@t3-oss/env-nextjs`
 - Fails fast if variables missing
 
 ### ✅ **Cross-Platform Compatibility**
+
 - Works on Ubuntu runners (bash scripts)
 - Windows-compatible local development
 - Handles path differences automatically
@@ -231,24 +243,28 @@ After pushing changes:
 **Common Issues & Solutions:**
 
 1. **Build fails with environment variable errors**
+
    ```bash
    # ❌ Error: Invalid environment variables
    # ✅ Fix: Check all secrets are set with NEXT_PUBLIC_ prefix
    ```
 
 2. **No `out` directory created**
+
    ```bash
    # ❌ Error: tar: out: Cannot open: No such file or directory
    # ✅ Fix: Manual export fallback handles this automatically
    ```
 
 3. **Config file conflicts**
+
    ```bash
    # ❌ Issue: next.config.js vs next.config.ts conflict
    # ✅ Fix: Workflow uses proper TypeScript config
    ```
 
 4. **Custom domain not working**
+
    ```bash
    # ❌ Issue: 404 on custom domain
    # ✅ Fix: Verify DNS settings + CNAME file in public/
@@ -262,6 +278,7 @@ After pushing changes:
    ```
 
 **Quick Debug Steps:**
+
 1. Check **Actions** tab for build logs
 2. Look for "Manual static export completed" message
 3. Verify all 4 secrets are set in repository settings
@@ -277,6 +294,7 @@ npm run deploy:github   # Build + deploy for GitHub Pages
 ### 🚀 **Pro Tips for Fast Deployment:**
 
 #### Copy This Exact Workflow Structure:
+
 ```
 .github/
   workflows/
@@ -284,6 +302,7 @@ npm run deploy:github   # Build + deploy for GitHub Pages
 ```
 
 #### Essential Files Checklist:
+
 - ✅ `.github/workflows/deploy.yml` (auto-deployment)
 - ✅ `next.config.ts` (static export config)
 - ✅ `package.json` (with build:github script)
@@ -291,6 +310,7 @@ npm run deploy:github   # Build + deploy for GitHub Pages
 - ✅ `public/.nojekyll` (prevents Jekyll processing)
 
 #### Repository Settings Checklist:
+
 - ✅ **Pages**: Source = "GitHub Actions"
 - ✅ **Secrets**: All 4 environment variables set
 - ✅ **Actions**: Enabled for the repository

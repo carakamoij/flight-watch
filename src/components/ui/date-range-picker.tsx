@@ -41,7 +41,7 @@ export function DateRangePicker({
 						id="date"
 						variant={"outline"}
 						className={cn(
-							"w-full justify-start text-left font-normal h-10 border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-accent hover:ring-2 hover:ring-ring/20 transition-all duration-200",
+							"w-full justify-start text-left font-normal h-10 border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground hover:bg-input/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] transition-all duration-200",
 							!value && "text-muted-foreground"
 						)}
 						disabled={disabled}

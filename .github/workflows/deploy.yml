@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "Building Next.js application..."
           npm run build:github
-          
+
           # Manual static export fallback (required due to config conflicts)
           if [ ! -d "./out" ]; then
             echo "Creating manual static export..."

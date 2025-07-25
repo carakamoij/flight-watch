@@ -18,11 +18,9 @@
 	--color-destructive: var(--destructive);
 	--color-destructive-foreground: var(--destructive-foreground);
 	--color-border: var(--border);
+	--color-header: var(--header);
 	--color-input: var(--input);
 	--color-ring: var(--ring);
-	--color-gradient-from: oklch(32.5% 0.08 282.5);
-	--color-gradient-via: oklch(41% 0.09 282.5);
-	--color-gradient-to: oklch(46% 0.13 282.5);
 	--radius: 0.5rem;
 }
 
@@ -47,11 +45,17 @@
 	--border: oklch(92% 0.01 230);
 	--input: oklch(98.5% 0.005 230);
 	--ring: oklch(56.5% 0.19 264.5);
+	--header: oklch(92% 0.01 230);
+	/* Light Mode Gradient (e.g., slate-50 -> slate-100 -> slate-50) */
+	--gradient-from: oklch(0.98 0.008 264);
+	--gradient-via: oklch(0.96 0.01 260);
+	--gradient-to: oklch(0.98 0.008 264);
 }
 
 .dark {
 	/* Dark mode - reduced opacity for better readability */
-	--background: oklch(32.5% 0.08 282.5);
+	--background: oklch(0.13 0.02 255);
+	/* --background: oklch(32.5% 0.08 282.5); */
 	--foreground: oklch(100% 0 0);
 	--card: oklch(36% 0.06 282.5);
 	--card-foreground: oklch(100% 0 0);
@@ -70,6 +74,15 @@
 	--border: oklch(36% 0.06 282.5);
 	--input: oklch(36% 0.06 282.5);
 	--ring: oklch(56.5% 0.19 264.5);
+	--header: oklch(0.13 0.02 255);
+	/* Dark Mode Gradient (slate-900 -> slate-800 -> slate-900) */
+	/* --gradient-from: oklch(0.13 0.02 255);
+	--gradient-via: oklch(0.21 0.02 255);
+	--gradient-to: oklch(0.13 0.02 255); */
+
+	--gradient-from: oklch(16.17% 0.01966 255.354);
+	--gradient-via: oklch(28.098% 0.06052 253.024);
+	--gradient-to: oklch(16.17% 0.01966 255.354);
 }
 
 @layer base {
@@ -79,29 +92,15 @@
 	}
 
 	body {
+		/* Apply the gradient to the body by default */
+		/* @apply bg-gradient; */
+		/* Add a fallback background color */
+		/* background-color: oklch(var(--gradient-from)); */
+
 		color: var(--foreground);
 		min-height: 100vh;
 	}
 
-	/* Dark mode gradient background */
-	.dark body {
-		background: linear-gradient(
-			135deg,
-			oklch(32.5% 0.08 282.5) 0%,
-			oklch(41% 0.09 282.5) 50%,
-			oklch(46% 0.13 282.5) 100%
-		);
-	}
-
-	/* Light mode off-white background */
-	body:not(.dark body) {
-		background: linear-gradient(
-			135deg,
-			oklch(98.5% 0.005 230) 0%,
-			oklch(95.5% 0.01 230) 50%,
-			oklch(92% 0.01 230) 100%
-		);
-	}
 	button:not([disabled]),
 	[role="button"]:not([disabled]) {
 		cursor: pointer;
@@ -118,4 +117,23 @@
 		background-color: transparent;
 		color: inherit;
 	}
+}
+
+/* 2. Create a reusable utility class for the gradient */
+@utility bg-gradient {
+	background-image: linear-gradient(
+		in oklab to bottom right,
+		var(--gradient-from),
+		var(--gradient-via),
+		var(--gradient-to)
+	);
+}
+
+@utility bg-gradient-card {
+	background-image: linear-gradient(
+		in oklab calc(90deg + (45deg * (100vw / 100vh))),
+		var(--gradient-from),
+		var(--gradient-via),
+		var(--gradient-to)
+	);
 }
