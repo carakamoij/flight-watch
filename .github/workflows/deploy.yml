@@ -59,16 +59,37 @@ jobs:
           echo "Starting build..."
           npm run build:github || {
             echo "Build failed with exit code $?"
-            echo "Checking for common issues..."
-            if [ ! -f ".env.local" ]; then
-              echo "No .env.local file (expected in CI)"
-            fi
             exit 1
           }
           echo "Build completed, checking for static export..."
           if [ ! -d "./out" ]; then
-            echo "No out directory found, trying manual export..."
-            npx next export || echo "Manual export also failed"
+            echo "No out directory found, checking .next/standalone or server files..."
+            if [ -d ".next/standalone" ]; then
+              echo "Found standalone build, copying to out..."
+              cp -r .next/standalone out
+            elif [ -d ".next/server/app" ]; then
+              echo "Found server app files, manual export needed..."
+              # Create out directory structure
+              mkdir -p out
+              # Copy static assets
+              if [ -d ".next/static" ]; then
+                mkdir -p out/_next/static
+                cp -r .next/static/* out/_next/static/
+              fi
+              # Find and copy HTML files
+              find .next -name "*.html" -type f | while read -r file; do
+                basename_file=$(basename "$file")
+                cp "$file" "out/$basename_file"
+              done
+              # Copy public files
+              if [ -d "public" ]; then
+                cp -r public/* out/ 2>/dev/null || true
+              fi
+              echo "Manual static export completed"
+            else
+              echo "Cannot determine build output structure"
+              ls -la .next/
+            fi
           fi
         env:
           # Environment variables for the app
@@ -83,6 +104,16 @@ jobs:
           echo "Current directory contents:"
           ls -la ./
           echo ""
+          echo "Checking Next.js config files:"
+          if [ -f "next.config.js" ]; then
+            echo "=== next.config.js content ==="
+            cat next.config.js
+          fi
+          if [ -f "next.config.ts" ]; then
+            echo "=== next.config.ts content ==="
+            cat next.config.ts
+          fi
+          echo ""
           echo "Looking for out or .next directories:"
           find . -maxdepth 2 -type d -name "out" -o -name ".next" | head -10
           echo ""
@@ -91,7 +122,13 @@ jobs:
             ls -la ./out
           elif [ -d "./.next" ]; then
             echo "⚠️ .next directory exists but no out directory"
-            echo "This suggests static export didn't happen"
+            echo "This suggests static export didn't happen properly"
+            echo "Checking export marker:"
+            if [ -f "./.next/export-marker.json" ]; then
+              echo "Export marker exists:"
+              cat ./.next/export-marker.json
+            fi
+            echo "Contents of .next:"
             ls -la ./.next
           else
             echo "❌ Neither out nor .next directory exists"
