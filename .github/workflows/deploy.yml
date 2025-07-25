@@ -37,6 +37,14 @@ jobs:
         with:
           static_site_generator: next
 
+      - name: Debug environment variables
+        run: |
+          echo "Checking environment variables..."
+          echo "NEXT_PUBLIC_N8N_BASE_URL is set: ${{ secrets.NEXT_PUBLIC_N8N_BASE_URL != '' }}"
+          echo "NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT is set: ${{ secrets.NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT != '' }}"
+          echo "NEXT_PUBLIC_N8N_TASKS_ENDPOINT is set: ${{ secrets.NEXT_PUBLIC_N8N_TASKS_ENDPOINT != '' }}"
+          echo "NEXT_PUBLIC_APP_SECRET is set: ${{ secrets.NEXT_PUBLIC_APP_SECRET != '' }}"
+
       - name: Build with Next.js
         run: npm run build:github
         env:
@@ -45,6 +53,16 @@ jobs:
           NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT }}
           NEXT_PUBLIC_N8N_TASKS_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_TASKS_ENDPOINT }}
           NEXT_PUBLIC_APP_SECRET: ${{ secrets.NEXT_PUBLIC_APP_SECRET }}
+
+      - name: Check if out directory exists
+        run: |
+          if [ -d "./out" ]; then
+            echo "✅ out directory exists"
+            ls -la ./out
+          else
+            echo "❌ out directory does not exist"
+            echo "Build likely failed"
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
