@@ -13,6 +13,13 @@ export type Task = {
 	isActive: boolean;
 };
 
+export type n8nTask = Task & {
+	lastCheckedAt: string; // <-- NEW
+	outboundPrice: number | null; // <-- NEW
+	returnPrice: number | null; // <-- NEW
+	apiCalls: number; // <-- NEW
+};
+
 export type Airport = {
 	name: string;
 	code: string;
