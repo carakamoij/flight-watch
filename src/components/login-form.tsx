@@ -7,11 +7,11 @@ import { z } from "zod";
 import { motion } from "framer-motion";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
@@ -195,6 +195,24 @@ export function LoginForm() {
 								</motion.div>
 							</motion.form>
 						</Form>
+
+						{/* Register Link */}
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							transition={{ delay: 0.5 }}
+							className="text-center mt-6"
+						>
+							<p className="text-sm text-muted-foreground">
+								Don&apos;t have an account?{" "}
+								<Link
+									href="/register"
+									className="font-medium text-primary hover:underline"
+								>
+									Create one
+								</Link>
+							</p>
+						</motion.div>
 					</CardContent>
 				</div>
 			</motion.div>
