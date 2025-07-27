@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/hooks";
+import { useAuthQuery } from "@/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
@@ -9,7 +9,7 @@ import { TanStackQueryTest } from "@/components/tanstack-query-test";
 import AppLoading from "@/app/loading";
 
 export default function DashboardPage() {
-	const { isAuthenticated, isLoading, user } = useAuth();
+	const { isAuthenticated, isLoading, user } = useAuthQuery();
 	const router = useRouter();
 
 	useEffect(() => {

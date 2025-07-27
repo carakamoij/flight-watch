@@ -7,11 +7,24 @@ import type { AuthUser } from "../lib/types";
 const AUTH_TOKEN_KEY = "flight-watcher-auth";
 const TOKEN_EXPIRY_DAYS = 7;
 
-function generateToken(email: string): string {
-	// Simple token generation (email + timestamp hash)
-	const timestamp = Date.now().toString();
-	const payload = `${email}:${timestamp}`;
-	return btoa(payload);
+// Session verification with n8n
+async function verifySession(token: string): Promise<boolean> {
+	try {
+		const response = await fetch(
+			`${env.NEXT_PUBLIC_N8N_BASE_URL}/webhook/auth/verify`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+			}
+		);
+
+		return response.ok;
+	} catch {
+		return false;
+	}
 }
 
 function getStoredUser(): AuthUser | null {
@@ -41,14 +54,24 @@ function getStoredUser(): AuthUser | null {
 export function useAuthQuery() {
 	const queryClient = useQueryClient();
 
-	// Auth state query
+	// Auth state query with session verification
 	const authQuery = useQuery({
 		queryKey: ["auth"],
-		queryFn: () => {
-			return getStoredUser();
+		queryFn: async () => {
+			const storedUser = getStoredUser();
+			if (!storedUser) return null;
+
+			// Verify session with n8n backend
+			const isValid = await verifySession(storedUser.token);
+			if (!isValid) {
+				localStorage.removeItem(AUTH_TOKEN_KEY);
+				return null;
+			}
+
+			return storedUser;
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes
-		refetchOnWindowFocus: false,
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		refetchOnWindowFocus: true, // Verify on window focus
 	});
 
 	// Login mutation
@@ -56,18 +79,41 @@ export function useAuthQuery() {
 		mutationFn: async ({
 			email,
 			password,
+			pin,
 		}: {
 			email: string;
 			password: string;
+			pin?: string;
 		}) => {
-			// Validate against the shared secret password
-			if (password !== env.NEXT_PUBLIC_APP_SECRET) {
-				throw new Error("Invalid credentials");
+			// Call n8n authentication endpoint
+			const response = await fetch(
+				`${env.NEXT_PUBLIC_N8N_BASE_URL}/webhook/auth/login`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						email,
+						secretKey: password,
+						pin,
+					}),
+				}
+			);
+
+			if (!response.ok) {
+				const error = await response
+					.json()
+					.catch(() => ({ message: "Authentication failed" }));
+				throw new Error(error.message || "Invalid credentials");
 			}
 
+			const { token, user } = await response.json();
+
+			// Store JWT token securely
 			const newUser: AuthUser = {
-				email,
-				token: generateToken(email),
+				email: user.email || email,
+				token, // JWT token from n8n
 				loginTime: Date.now(),
 			};
 

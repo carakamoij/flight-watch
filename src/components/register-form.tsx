@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, startTransition } from "react";
+import { useState, startTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -39,6 +39,8 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
 	const [isSuccess, setIsSuccess] = useState(false);
+	const [pinInputType, setPinInputType] = useState<"text" | "password">("text");
+	const [pinTimeoutId, setPinTimeoutId] = useState<NodeJS.Timeout | null>(null);
 	const { mutateAsync: register, isPending } = useRegister();
 
 	const form = useForm<RegisterFormData>({
@@ -48,6 +50,35 @@ export function RegisterForm() {
 			pin: "",
 		},
 	});
+
+	const handlePinChange = (value: string) => {
+		// Clear existing timeout
+		if (pinTimeoutId) {
+			clearTimeout(pinTimeoutId);
+		}
+
+		// Show the digits while typing
+		setPinInputType("text");
+
+		// Set timeout to hide digits after 1 second of no typing
+		const timeoutId = setTimeout(() => {
+			setPinInputType("password");
+		}, 1000);
+
+		setPinTimeoutId(timeoutId);
+
+		// Update form value
+		form.setValue("pin", value);
+	};
+
+	// Cleanup timeout on unmount
+	useEffect(() => {
+		return () => {
+			if (pinTimeoutId) {
+				clearTimeout(pinTimeoutId);
+			}
+		};
+	}, [pinTimeoutId]);
 
 	const onSubmit = async (data: RegisterFormData) => {
 		startTransition(async () => {
@@ -205,11 +236,14 @@ export function RegisterForm() {
 												<FormControl>
 													<Input
 														{...field}
-														type="text"
+														type={pinInputType}
 														placeholder="123456"
 														maxLength={6}
 														disabled={isPending}
 														className="text-center font-mono text-lg tracking-widest"
+														onChange={(e) => {
+															handlePinChange(e.target.value);
+														}}
 													/>
 												</FormControl>
 												<FormMessage />

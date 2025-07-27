@@ -9,6 +9,8 @@ export const env = createEnv({
 		NEXT_PUBLIC_N8N_BASE_URL: z.string().url(),
 		NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT: z.string().min(1),
 		NEXT_PUBLIC_N8N_TASKS_ENDPOINT: z.string().min(1),
+		NEXT_PUBLIC_N8N_AUTH_ENDPOINT: z.string().min(1),
+		NEXT_PUBLIC_N8N_VERIFY_ENDPOINT: z.string().min(1),
 		NEXT_PUBLIC_APP_SECRET: z.string().min(8),
 	},
 	runtimeEnv: {
@@ -16,6 +18,9 @@ export const env = createEnv({
 		NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT:
 			process.env.NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT,
 		NEXT_PUBLIC_N8N_TASKS_ENDPOINT: process.env.NEXT_PUBLIC_N8N_TASKS_ENDPOINT,
+		NEXT_PUBLIC_N8N_AUTH_ENDPOINT: process.env.NEXT_PUBLIC_N8N_AUTH_ENDPOINT,
+		NEXT_PUBLIC_N8N_VERIFY_ENDPOINT:
+			process.env.NEXT_PUBLIC_N8N_VERIFY_ENDPOINT,
 		NEXT_PUBLIC_APP_SECRET: process.env.NEXT_PUBLIC_APP_SECRET,
 	},
 });

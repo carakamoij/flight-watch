@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -25,7 +25,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
-import { useAuth } from "@/hooks";
+import { useAuthQuery } from "@/hooks/useAuthQuery";
 
 const loginSchema = z.object({
 	email: z.string().email(),
@@ -41,7 +41,11 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
 	const [isPending, startTransition] = useTransition();
-	const { login } = useAuth();
+	const [pinInputType, setPinInputType] = useState<"text" | "password">("text");
+	const [pinTimeoutId, setPinTimeoutId] = useState<NodeJS.Timeout | null>(null);
+	const { login, isLoginLoading } = useAuthQuery();
+
+	const isLoading = isPending || isLoginLoading;
 
 	const form = useForm<LoginForm>({
 		resolver: zodResolver(loginSchema),
@@ -52,13 +56,44 @@ export function LoginForm() {
 		},
 	});
 
+	const handlePinChange = (value: string) => {
+		// Clear existing timeout
+		if (pinTimeoutId) {
+			clearTimeout(pinTimeoutId);
+		}
+
+		// Show the digits while typing
+		setPinInputType("text");
+
+		// Set timeout to hide digits after 1 second of no typing
+		const timeoutId = setTimeout(() => {
+			setPinInputType("password");
+		}, 1000);
+
+		setPinTimeoutId(timeoutId);
+
+		// Update form value
+		form.setValue("pin", value);
+	};
+
+	// Cleanup timeout on unmount
+	useEffect(() => {
+		return () => {
+			if (pinTimeoutId) {
+				clearTimeout(pinTimeoutId);
+			}
+		};
+	}, [pinTimeoutId]);
+
 	const onSubmit = (data: LoginForm) => {
 		startTransition(async () => {
 			try {
-				// TODO: Backend will validate secret key (salted/hashed) and PIN
-				// Secret key will be stored in backend, not in client env vars
-				// This allows changing the secret key if compromised
-				await login(data.email, data.password, data.pin);
+				// Use the new JWT-based authentication via n8n
+				await login({
+					email: data.email,
+					password: data.password, // This is the secret key
+					pin: data.pin,
+				});
 				toast.success("Successfully logged in!");
 			} catch (error) {
 				toast.error(error instanceof Error ? error.message : "Login failed");
@@ -91,7 +126,7 @@ export function LoginForm() {
 							Enter your email, secret key, and PIN to access the flight watcher
 						</CardDescription>
 					</CardHeader>
-					<CardContent>
+					<CardContent className="mt-3">
 						<Form {...form}>
 							<motion.form
 								onSubmit={form.handleSubmit(onSubmit)}
@@ -125,7 +160,7 @@ export function LoginForm() {
 															autoComplete="email"
 															placeholder="your.email@example.com"
 															className="pl-10"
-															disabled={isPending}
+															disabled={isLoading}
 														/>
 													</div>
 												</FormControl>
@@ -157,7 +192,7 @@ export function LoginForm() {
 															autoComplete="current-password"
 															placeholder="Enter secret key"
 															className="pl-10"
-															disabled={isPending}
+															disabled={isLoading}
 														/>
 													</div>
 												</FormControl>
@@ -184,11 +219,14 @@ export function LoginForm() {
 														<Hash className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
 														<Input
 															{...field}
-															type="text"
+															type={pinInputType}
 															placeholder="123456"
 															maxLength={6}
-															disabled={isPending}
+															disabled={isLoading}
 															className="pl-10 text-center font-mono text-lg tracking-widest"
+															onChange={(e) => {
+																handlePinChange(e.target.value);
+															}}
 														/>
 													</div>
 												</FormControl>
@@ -211,7 +249,7 @@ export function LoginForm() {
 										<Button
 											type="submit"
 											className="w-full h-12 mt-2"
-											disabled={isPending}
+											disabled={isLoading}
 										>
 											{isPending ? (
 												<motion.div

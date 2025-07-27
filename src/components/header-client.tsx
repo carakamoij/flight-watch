@@ -1,8 +1,8 @@
 "use client";
 import { Header } from "@/components/header";
-import { useAuth } from "@/hooks";
+import { useAuthQuery } from "@/hooks";
 
 export function HeaderClient() {
-	const { user } = useAuth();
+	const { user } = useAuthQuery();
 	return <Header userEmail={user?.email ?? ""} />;
 }

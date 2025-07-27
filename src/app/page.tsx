@@ -1,10 +1,10 @@
 "use client";
-import { useAuth } from "@/hooks";
+import { useAuthQuery } from "@/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function HomeRedirect() {
-	const { isAuthenticated } = useAuth();
+	const { isAuthenticated } = useAuthQuery();
 	const router = useRouter();
 	const [checking, setChecking] = useState(true);
 
