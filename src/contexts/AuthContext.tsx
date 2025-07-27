@@ -14,7 +14,7 @@ const TOKEN_EXPIRY_DAYS = 7;
 
 export interface AuthContextType {
 	user: AuthUser | null;
-	login: (email: string, password: string) => Promise<void>;
+	login: (email: string, password: string, pin?: string) => Promise<void>;
 	logout: () => void;
 	isAuthenticated: boolean;
 	isLoading: boolean;
@@ -66,10 +66,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		setIsLoading(false);
 	}, []);
 
-	const login = async (email: string, password: string): Promise<void> => {
-		// Validate against the shared secret password
+	const login = async (
+		email: string,
+		password: string,
+		pin?: string
+	): Promise<void> => {
+		// TODO: Remove this client-side validation when backend is ready
+		// Backend will validate secret key (salted/hashed) and PIN
+		// Secret key will be stored in backend, not in client env vars
 		if (password !== env.NEXT_PUBLIC_APP_SECRET) {
 			throw new Error("Invalid credentials");
+		}
+
+		// TODO: Add PIN validation when backend is ready
+		// PIN will be validated against user's individual PIN in backend
+		if (pin) {
+			console.log("PIN provided:", pin);
 		}
 
 		const newUser: AuthUser = {
