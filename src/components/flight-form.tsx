@@ -20,7 +20,7 @@ import { addDays, format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch-copy";
 import {
 	Card,
 	CardContent,

@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { env } from "../env.mjs";
 import type { AuthUser } from "../lib/types";
+import { useEffect, useMemo } from "react";
 
 const AUTH_TOKEN_KEY = "flight-watcher-auth";
 const TOKEN_EXPIRY_DAYS = 7;
@@ -115,6 +116,7 @@ export function useAuthQuery() {
 				email: user.email || email,
 				token, // JWT token from n8n
 				loginTime: Date.now(),
+				isAdmin: user.isAdmin ?? user.is_admin, // support both for now
 			};
 
 			localStorage.setItem(AUTH_TOKEN_KEY, JSON.stringify(newUser));
@@ -147,5 +149,26 @@ export function useAuthQuery() {
 		logout: () => logoutMutation.mutate(),
 		isLoginLoading: loginMutation.isPending,
 		loginError: loginMutation.error,
+	};
+}
+
+// DEV ONLY: Use this to force isAdmin=true and isAuthenticated=true for all users
+export function useAuthQueryAdminMock() {
+	const mockUser = useMemo(
+		() => ({
+			id: "1",
+			email: "admin@example.com",
+			token: "mock-token",
+			loginTime: Date.now(),
+			isAdmin: true,
+			is_active: true,
+			tasksCount: 5,
+		}),
+		[]
+	);
+	return {
+		isAuthenticated: true,
+		isLoading: false,
+		user: mockUser,
 	};
 }

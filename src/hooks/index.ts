@@ -1,5 +1,4 @@
-export { useAuth } from "./useAuth";
-export { useAuthQuery } from "./useAuthQuery";
+export { useAuthQuery, useAuthQueryAdminMock } from "./useAuthQuery";
 export {
 	useTasks,
 	useCreateTask,
@@ -7,3 +6,4 @@ export {
 	useDeleteTask,
 } from "./useTasks";
 export { useRegister } from "./useRegister";
+export { useUsers } from "./useUsers";

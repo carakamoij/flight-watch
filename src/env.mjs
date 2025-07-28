@@ -12,6 +12,7 @@ export const env = createEnv({
 		NEXT_PUBLIC_N8N_AUTH_ENDPOINT: z.string().min(1),
 		NEXT_PUBLIC_N8N_VERIFY_ENDPOINT: z.string().min(1),
 		NEXT_PUBLIC_APP_SECRET: z.string().min(8),
+		NEXT_PUBLIC_USE_MOCK_USERS: z.boolean().default(true),
 	},
 	runtimeEnv: {
 		NEXT_PUBLIC_N8N_BASE_URL: process.env.NEXT_PUBLIC_N8N_BASE_URL,

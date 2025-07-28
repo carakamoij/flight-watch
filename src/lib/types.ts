@@ -30,6 +30,7 @@ export type AuthUser = {
 	email: string;
 	token: string;
 	loginTime: number;
+	isAdmin?: boolean;
 };
 
 export type FlightSearchParams = {
@@ -42,4 +43,14 @@ export type FlightSearchParams = {
 	checkOutbound: boolean;
 	checkReturn: boolean;
 	currency: string;
+};
+
+export type User = {
+	id: string;
+	email: string;
+	is_active: boolean;
+	isAdmin: boolean;
+	tasksCount: number;
+	created_at?: string;
+	updated_at?: string;
 };
