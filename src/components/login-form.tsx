@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -25,11 +25,14 @@ import {
 	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
-import { useAuthQuery } from "@/hooks/useAuthQuery";
+
+import { useAuth } from "@/hooks";
+
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
 	email: z.string().email(),
-	password: z.string().min(1, "Secret key is required"),
+	secretKey: z.string().min(1, "Secret key is required"),
 	pin: z
 		.string()
 		.min(6, "PIN must be exactly 6 digits")
@@ -37,21 +40,20 @@ const loginSchema = z.object({
 		.regex(/^\d{6}$/, "PIN must contain only numbers"),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-	const [isPending, startTransition] = useTransition();
 	const [pinInputType, setPinInputType] = useState<"text" | "password">("text");
 	const [pinTimeoutId, setPinTimeoutId] = useState<NodeJS.Timeout | null>(null);
-	const { login, isLoginLoading } = useAuthQuery();
+	const [formError, setFormError] = useState<string | null>(null);
 
-	const isLoading = isPending || isLoginLoading;
-
-	const form = useForm<LoginForm>({
+	const { login, isAuthenticated, isLoading } = useAuth();
+	const router = useRouter();
+	const form = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
 		defaultValues: {
 			email: "",
-			password: "",
+			secretKey: "",
 			pin: "",
 		},
 	});
@@ -74,6 +76,11 @@ export function LoginForm() {
 
 		// Update form value
 		form.setValue("pin", value);
+		// Re-validate pin field and clear error if valid
+
+		if (form.formState.isSubmitted) {
+			form.trigger("pin");
+		}
 	};
 
 	// Cleanup timeout on unmount
@@ -85,21 +92,36 @@ export function LoginForm() {
 		};
 	}, [pinTimeoutId]);
 
-	const onSubmit = (data: LoginForm) => {
+	const onSubmit = async (data: LoginFormData) => {
+		setFormError(null);
 		startTransition(async () => {
 			try {
-				// Use the new JWT-based authentication via n8n
 				await login({
 					email: data.email,
-					password: data.password, // This is the secret key
+					secretKey: data.secretKey,
 					pin: data.pin,
 				});
 				toast.success("Successfully logged in!");
-			} catch (error) {
-				toast.error(error instanceof Error ? error.message : "Login failed");
+			} catch (error: unknown) {
+				const message =
+					error instanceof Error
+						? error.message
+						: typeof error === "string"
+						? error
+						: "Login failed!";
+
+				setFormError(message);
+				toast.error(message);
 			}
 		});
 	};
+
+	// re-direct handled in layout.
+	// useEffect(() => {
+	// 	if (isAuthenticated) {
+	// 		router.push("/dashboard");
+	// 	}
+	// }, [isAuthenticated, router]);
 
 	return (
 		<div className="min-h-screen">
@@ -125,6 +147,22 @@ export function LoginForm() {
 						<CardDescription className="text-center">
 							Enter your email, secret key, and PIN to access the flight watcher
 						</CardDescription>
+						{formError && (
+							<div className="mt-2 text-center text-sm text-red-600 font-medium">
+								{formError}
+								{formError && (
+									<span className="block mt-1 text-xs text-muted-foreground">
+										Need help?{" "}
+										<a
+											href="mailto:support@flightwatcher.carakamoij.cc"
+											className="text-primary underline"
+										>
+											Contact support
+										</a>
+									</span>
+								)}
+							</div>
+						)}
 					</CardHeader>
 					<CardContent className="mt-3">
 						<Form {...form}>
@@ -156,20 +194,22 @@ export function LoginForm() {
 														<Input
 															{...field}
 															type="email"
-															name="email"
 															autoComplete="email"
 															placeholder="your.email@example.com"
-															className="pl-10"
+															className={`pl-10 ${
+																form.formState.errors.email
+																	? "border-red-600 focus:border-red-600 ring-2 ring-red-200"
+																	: ""
+															}`}
 															disabled={isLoading}
 														/>
 													</div>
 												</FormControl>
-												<FormMessage />
+												<FormMessage className="text-red-600 font-semibold" />
 											</FormItem>
 										)}
 									/>
 								</motion.div>
-
 								<motion.div
 									variants={{
 										hidden: { opacity: 0, y: 20 },
@@ -178,7 +218,7 @@ export function LoginForm() {
 								>
 									<FormField
 										control={form.control}
-										name="password"
+										name="secretKey"
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Secret Key</FormLabel>
@@ -188,20 +228,22 @@ export function LoginForm() {
 														<Input
 															{...field}
 															type="password"
-															name="password"
 															autoComplete="current-password"
 															placeholder="Enter secret key"
-															className="pl-10"
+															className={`pl-10 ${
+																form.formState.errors.secretKey
+																	? "border-red-600 focus:border-red-600 ring-2 ring-red-200"
+																	: ""
+															}`}
 															disabled={isLoading}
 														/>
 													</div>
 												</FormControl>
-												<FormMessage />
+												<FormMessage className="text-red-600 font-semibold" />
 											</FormItem>
 										)}
 									/>
 								</motion.div>
-
 								<motion.div
 									variants={{
 										hidden: { opacity: 0, y: 20 },
@@ -223,19 +265,22 @@ export function LoginForm() {
 															placeholder="123456"
 															maxLength={6}
 															disabled={isLoading}
-															className="pl-10 text-center font-mono text-lg tracking-widest"
+															className={`pl-10 text-center font-mono text-lg tracking-widest ${
+																form.formState.errors.pin
+																	? "border-red-600 focus:border-red-600 ring-2 ring-red-200"
+																	: ""
+															}`}
 															onChange={(e) => {
 																handlePinChange(e.target.value);
 															}}
 														/>
 													</div>
 												</FormControl>
-												<FormMessage />
+												<FormMessage className="text-red-600 font-semibold" />
 											</FormItem>
 										)}
 									/>
 								</motion.div>
-
 								<motion.div
 									variants={{
 										hidden: { opacity: 0, y: 20 },
@@ -251,7 +296,7 @@ export function LoginForm() {
 											className="w-full h-12 mt-2"
 											disabled={isLoading}
 										>
-											{isPending ? (
+											{isLoading ? (
 												<motion.div
 													initial={{ opacity: 0 }}
 													animate={{ opacity: 1 }}
@@ -273,8 +318,6 @@ export function LoginForm() {
 								</motion.div>
 							</motion.form>
 						</Form>
-
-						{/* Register Link */}
 						<motion.div
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}

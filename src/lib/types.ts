@@ -1,3 +1,11 @@
+// Standard response type for all n8n webhook responses
+export type N8nResponse = {
+	success: boolean;
+	error?: string;
+	message: string;
+	token?: string; // Optional token for auth responses
+	[key: string]: unknown; // for extra fields if needed
+};
 export type Task = {
 	id: string;
 	email: string;
@@ -29,8 +37,7 @@ export type Airport = {
 export type AuthUser = {
 	email: string;
 	token: string;
-	loginTime: number;
-	isAdmin?: boolean;
+	isAdmin: boolean;
 };
 
 export type FlightSearchParams = {

@@ -1,7 +1,12 @@
+// Registration uses a React Query mutation because it is a one-off async operation
+// that does not need to update global auth state instantly. Login uses context for instant state.
+// This hook is required for register-form.tsx and should not be removed.
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { env } from "../env.mjs";
+import { getN8nApiUrl } from "../lib/n8nApiUrl";
+import type { N8nResponse } from "../lib/types";
+import api from "../lib/api";
 
 interface RegisterData {
 	email: string;
@@ -9,41 +14,19 @@ interface RegisterData {
 }
 
 export function useRegister() {
-	return useMutation({
-		mutationFn: async (data: RegisterData) => {
-			try {
-				// POST to n8n register webhook
-				const response = await fetch(
-					`${env.NEXT_PUBLIC_N8N_BASE_URL}/webhook/register`,
-					{
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify(data),
-					}
+	return useMutation<N8nResponse, Error, RegisterData>({
+		mutationFn: async (data: RegisterData): Promise<N8nResponse> => {
+			const response = await api.post<N8nResponse>(
+				getN8nApiUrl("register"),
+				data
+			);
+			if (!response.data?.success) {
+				throw new Error(
+					response.data?.message ||
+						"Registration failed. Please check your details and try again."
 				);
-
-				if (!response.ok) {
-					throw new Error("Registration failed");
-				}
-
-				return response.json();
-			} catch (error) {
-				// For development: if n8n isn't set up, simulate success
-				console.log("📝 Would submit registration for admin approval:");
-				console.log("👤 Email:", data.email);
-				console.log("🔑 User-defined PIN:", data.pin);
-				console.log("❌ n8n not available:", error);
-
-				// Simulate successful response for frontend testing
-				return {
-					success: true,
-					message:
-						"Registration submitted successfully! An admin will review and approve your account.",
-					email: data.email,
-				};
 			}
+			return response.data;
 		},
 	});
 }

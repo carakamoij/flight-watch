@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { useRegister } from "@/hooks";
 import { toast } from "sonner";
+import { N8nResponse } from "@/lib/types";
 
 const registerSchema = z.object({
 	email: z.string().min(1, "Email is required").email(),
@@ -33,12 +34,14 @@ const registerSchema = z.object({
 		.min(6, "PIN must be exactly 6 digits")
 		.max(6, "PIN must be exactly 6 digits")
 		.regex(/^\d{6}$/, "PIN must contain only numbers"),
+	secretKey: z.string().min(1, "Secret key is required"),
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
 	const [isSuccess, setIsSuccess] = useState(false);
+	const [formError, setFormError] = useState<string | null>(null);
 	const [pinInputType, setPinInputType] = useState<"text" | "password">("text");
 	const [pinTimeoutId, setPinTimeoutId] = useState<NodeJS.Timeout | null>(null);
 	const { mutateAsync: register, isPending } = useRegister();
@@ -47,6 +50,7 @@ export function RegisterForm() {
 		resolver: zodResolver(registerSchema),
 		defaultValues: {
 			email: "",
+			secretKey: "",
 			pin: "",
 		},
 	});
@@ -69,6 +73,10 @@ export function RegisterForm() {
 
 		// Update form value
 		form.setValue("pin", value);
+		// Only trigger validation if the form has been submitted at least once
+		if (form.formState.isSubmitted) {
+			form.trigger("pin");
+		}
 	};
 
 	// Cleanup timeout on unmount
@@ -81,18 +89,23 @@ export function RegisterForm() {
 	}, [pinTimeoutId]);
 
 	const onSubmit = async (data: RegisterFormData) => {
+		setFormError(null);
 		startTransition(async () => {
 			try {
-				await register(data);
+				console.log("[RegisterForm] Submitting registration", data);
+				await register(data); // throws on !response.ok
 				setIsSuccess(true);
 				toast.success("Registration submitted successfully!");
-				// No automatic redirect since user can't login yet
 			} catch (error) {
-				toast.error(
+				const message =
 					error instanceof Error
 						? error.message
-						: "Registration failed. Please try again."
-				);
+						: typeof error === "string"
+						? error
+						: "Registration failed.";
+				// Prefer error.message from thrown error (from useRegister)
+				setFormError(message);
+				toast.error(message);
 			}
 		});
 	};
@@ -148,6 +161,17 @@ export function RegisterForm() {
 								>
 									Register Another Account
 								</Button>
+								<div className="text-center mt-4">
+									<p className="text-sm text-muted-foreground">
+										Need help?{" "}
+										<a
+											href="mailto:support@flightwatcher.carakamoij.cc"
+											className="text-primary underline"
+										>
+											Contact support
+										</a>
+									</p>
+								</div>
 							</div>
 						</CardContent>
 					</div>
@@ -182,6 +206,22 @@ export function RegisterForm() {
 						<CardDescription className="text-center">
 							Enter your email and create a 6-digit PIN for your account
 						</CardDescription>
+						{formError && (
+							<div className="mt-2 text-center text-sm text-red-600 font-medium">
+								{formError}
+								{formError && (
+									<span className="block mt-1 text-xs text-muted-foreground">
+										Need help?{" "}
+										<a
+											href="mailto:support@flightwatcher.carakamoij.cc"
+											className="text-primary underline"
+										>
+											Contact support
+										</a>
+									</span>
+								)}
+							</div>
+						)}
 					</CardHeader>
 					<CardContent className="mt-4">
 						<Form {...form}>
@@ -212,6 +252,34 @@ export function RegisterForm() {
 														{...field}
 														type="email"
 														placeholder="your@email.com"
+														disabled={isPending}
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								</motion.div>
+
+								{/* Secret Key field with extra spacing */}
+								<motion.div
+									className="mt-4"
+									variants={{
+										hidden: { opacity: 0, y: 20 },
+										visible: { opacity: 1, y: 0 },
+									}}
+								>
+									<FormField
+										control={form.control}
+										name="secretKey"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Secret Key</FormLabel>
+												<FormControl>
+													<Input
+														{...field}
+														type="password"
+														placeholder="Enter the shared secret key"
 														disabled={isPending}
 													/>
 												</FormControl>

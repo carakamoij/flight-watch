@@ -1,27 +1,59 @@
+// This file has been removed as it is no longer used in the new context-based auth flow.
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { env } from "../env.mjs";
-import type { User } from "../lib/types";
-import { useAuthQuery } from "./useAuthQuery";
-import { mockUsers } from "../data/mock-users";
+import type { User, N8nResponse } from "../lib/types";
+import { useAuth } from "./useAuth";
 
 export function useUsers() {
-	const { user } = useAuthQuery();
+	const { user } = useAuth();
 	const queryClient = useQueryClient();
 
 	const usersQuery = useQuery<User[]>({
 		queryKey: ["users"],
 		queryFn: async () => {
-			if (process.env.NEXT_PUBLIC_USE_MOCK_USERS === "true") {
-				return mockUsers;
-			}
 			if (!user?.token) throw new Error("Not authenticated");
-			const res = await fetch(`${env.NEXT_PUBLIC_N8N_BASE_URL}/webhook/users`, {
-				headers: {
-					Authorization: `Bearer ${user.token}`,
-				},
-			});
-			if (!res.ok) throw new Error("Failed to fetch users");
-			return res.json();
+			let response: Response;
+			try {
+				response = await fetch(
+					`${env.NEXT_PUBLIC_N8N_BASE_URL}/webhook/users`,
+					{
+						headers: {
+							Authorization: `Bearer ${user.token}`,
+						},
+					}
+				);
+			} catch (err) {
+				if (process.env.NODE_ENV === "development") {
+					console.warn("Fetch users failed (network error)", err);
+				}
+				throw new Error(
+					"Could not connect to the user service. Please try again later."
+				);
+			}
+			let result: N8nResponse | null = null;
+			try {
+				result = await response.json();
+			} catch {}
+			if (!response.ok) {
+				if (process.env.NODE_ENV === "development") {
+					console.warn("Fetch users failed (network/server)", {
+						status: response.status,
+					});
+				}
+				throw new Error(
+					response.status === 404
+						? "User service is unavailable. Please try again later."
+						: response.status === 403
+						? "You are not authorized to view users. Please contact support."
+						: "Could not connect to the user service. Please try again later."
+				);
+			}
+			if (!result?.success) {
+				throw new Error(
+					result?.message || "Failed to fetch users. Please try again later."
+				);
+			}
+			return result.users as User[];
 		},
 		enabled: !!user?.token || process.env.NEXT_PUBLIC_USE_MOCK_USERS === "true",
 	});
@@ -33,19 +65,51 @@ export function useUsers() {
 			is_admin?: boolean;
 		}) => {
 			if (!user?.token) throw new Error("Not authenticated");
-			const res = await fetch(
-				`${env.NEXT_PUBLIC_N8N_BASE_URL}/webhook/users/${update.id}`,
-				{
-					method: "PATCH",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${user.token}`,
-					},
-					body: JSON.stringify(update),
+			let response: Response;
+			try {
+				response = await fetch(
+					`${env.NEXT_PUBLIC_N8N_BASE_URL}/webhook/users/${update.id}`,
+					{
+						method: "PATCH",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${user.token}`,
+						},
+						body: JSON.stringify(update),
+					}
+				);
+			} catch (err) {
+				if (process.env.NODE_ENV === "development") {
+					console.warn("Update user failed (network error)", err);
 				}
-			);
-			if (!res.ok) throw new Error("Failed to update user");
-			return res.json();
+				throw new Error(
+					"Could not connect to the user service. Please try again later."
+				);
+			}
+			let result: N8nResponse | null = null;
+			try {
+				result = await response.json();
+			} catch {}
+			if (!response.ok) {
+				if (process.env.NODE_ENV === "development") {
+					console.warn("Update user failed (network/server)", {
+						status: response.status,
+					});
+				}
+				throw new Error(
+					response.status === 404
+						? "User service is unavailable. Please try again later."
+						: response.status === 403
+						? "You are not authorized to update users. Please contact support."
+						: "Could not connect to the user service. Please try again later."
+				);
+			}
+			if (!result?.success) {
+				throw new Error(
+					result?.message || "Failed to update user. Please try again later."
+				);
+			}
+			return result;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["users"] });

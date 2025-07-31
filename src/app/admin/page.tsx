@@ -25,7 +25,7 @@ import {
 	TableCell,
 } from "@/components/ui/table";
 
-const MotionTableRow = motion(TableRow);
+const MotionTableRow = motion.create(TableRow);
 
 export default function AdminPage() {
 	const [mounted, setMounted] = useState(false);

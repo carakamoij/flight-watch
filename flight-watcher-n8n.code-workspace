@@ -27,6 +27,17 @@
 		"terminal.integrated.automationProfile.windows": {
 			"path": "C:\\Windows\\System32\\cmd.exe"
 		},
-		"powershell.cwd": "flight-watcher-n8n"
+		"powershell.cwd": "flight-watcher-n8n",
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"server": "localhost",
+				"port": 5434,
+				"driver": "PostgreSQL",
+				"name": "n8n-flight-db",
+				"database": "n8n-flight-watcher",
+				"username": "n8n"
+			}
+		]
 	}
 }

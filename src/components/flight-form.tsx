@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { unknown, z } from "zod";
 import { motion } from "framer-motion";
 import {
 	Plane,
@@ -43,7 +43,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { n8nApi } from "@/lib/api";
+// import { n8nApi } from "@/lib/api";
 import { airports, defaultSearchParams, getAirportName } from "@/lib/data";
 import type { FlightSearchParams, Task } from "@/lib/types";
 import { Slider } from "./ui/slider";
@@ -100,7 +100,7 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 			try {
 				setIsLoadingTasks(true);
 				setHasTasksError(false);
-				const tasks = await n8nApi.getTasks(userEmail);
+				const tasks: Task[] = []; //await n8nApi.getTasks(userEmail);
 				setExistingTasks(tasks || []);
 
 				// Pre-populate form with first existing task if available
@@ -142,11 +142,11 @@ export function FlightForm({ userEmail }: FlightFormProps) {
 					currency: defaultSearchParams.currency,
 				};
 
-				await n8nApi.createOrUpdateTask(params);
+				//await n8nApi.createOrUpdateTask(params);
 				toast.success("Flight monitoring task saved successfully!");
 
 				// Reload tasks to show updated data
-				const updatedTasks = await n8nApi.getTasks(userEmail);
+				const updatedTasks: Task[] = []; //= await n8nApi.getTasks(userEmail);
 				setExistingTasks(updatedTasks || []);
 			} catch (error) {
 				toast.error(

@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/contexts";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { QueryProvider } from "@/components/query-provider";
 import "../env.mjs"; // Validate environment variables
 

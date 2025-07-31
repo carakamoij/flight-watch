@@ -6,13 +6,12 @@ import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 
-import { useAuthQueryAdminMock, useAuthQuery } from "@/hooks";
+import { useAuth } from "@/hooks";
 import { usePathname } from "next/navigation";
 
 export function Header() {
 	const { theme, setTheme } = useTheme();
-	const { user } = useAuthQueryAdminMock();
-	const { logout } = useAuthQuery();
+	const { user, logout } = useAuth();
 	const pathname = usePathname();
 
 	// Determine if we should show the admin/dashboard link
@@ -20,13 +19,7 @@ export function Header() {
 	const isOnAdmin = pathname.startsWith("/admin");
 
 	const handleLogout = () => {
-		if (typeof logout === "function") {
-			logout(); // use mutate, not mutateAsync
-		} else {
-			// fallback: clear localStorage and reload
-			localStorage.removeItem("flight-watcher-auth");
-			window.location.reload();
-		}
+		logout(); // use mutate, not mutateAsync
 	};
 
 	const toggleTheme = () => {

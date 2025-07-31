@@ -1,14 +1,14 @@
+// This file has been removed as it is no longer used in the new context-based auth flow.
 "use client";
 
-import { useAuthQuery, useTasks } from "@/hooks";
+import { useAuth, useTasks } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 export function TanStackQueryTest() {
 	const queryClient = useQueryClient();
-	const { user, isAuthenticated, login, logout, isLoginLoading } =
-		useAuthQuery();
+	const { user, isAuthenticated, login, logout, isLoading } = useAuth();
 	const {
 		data: tasks,
 		isLoading: tasksLoading,
@@ -23,7 +23,8 @@ export function TanStackQueryTest() {
 			addLog("🔄 Starting login...");
 			await login({
 				email: "test@example.com",
-				password: process.env.NEXT_PUBLIC_APP_SECRET || "test",
+				secretKey: process.env.NEXT_PUBLIC_APP_SECRET || "test",
+				pin: "1234",
 			});
 			addLog("✅ Login successful - auth cache updated!");
 		} catch (error) {
@@ -66,7 +67,7 @@ export function TanStackQueryTest() {
 				<h3 className="font-medium">Auth State:</h3>
 				<p>Authenticated: {isAuthenticated ? "✅ Yes" : "❌ No"}</p>
 				<p>User: {user?.email || "None"}</p>
-				<p>Loading: {isLoginLoading ? "🔄 Yes" : "❌ No"}</p>
+				<p>Loading: {isLoading ? "🔄 Yes" : "❌ No"}</p>
 				<p>
 					Last Updated:{" "}
 					{dataUpdatedAt
@@ -77,8 +78,8 @@ export function TanStackQueryTest() {
 
 			{/* Auth Actions */}
 			<div className="flex gap-2 flex-wrap">
-				<Button onClick={handleTestLogin} disabled={isLoginLoading}>
-					{isLoginLoading ? "Logging in..." : "Test Login"}
+				<Button onClick={handleTestLogin} disabled={isLoading}>
+					{isLoading ? "Logging in..." : "Test Login"}
 				</Button>
 				<Button onClick={handleLogout} variant="outline">
 					Logout
