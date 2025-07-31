@@ -68,9 +68,10 @@ jobs:
           fi
         env:
           NEXT_PUBLIC_N8N_BASE_URL: ${{ secrets.NEXT_PUBLIC_N8N_BASE_URL }}
+          NEXT_PUBLIC_N8N_AUTH_REGISTER_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_AUTH_REGISTER_ENDPOINT }}
+          NEXT_PUBLIC_N8N_AUTH_LOGIN_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_AUTH_LOGIN_ENDPOINT }}
           NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_SCHEDULE_ENDPOINT }}
-          NEXT_PUBLIC_N8N_TASKS_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_TASKS_ENDPOINT }}
-          NEXT_PUBLIC_APP_SECRET: ${{ secrets.NEXT_PUBLIC_APP_SECRET }}
+          NEXT_PUBLIC_N8N_TASKS_ENDPOINT: ${{ secrets.NEXT_PUBLIC_N8N_TASKS_ENDPOINT }}          
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
