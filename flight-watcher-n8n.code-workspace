@@ -1,0 +1,43 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../n8n-docker-flight-watcher"
+		}
+	],
+	"settings": {
+		"terminal.integrated.defaultProfile.windows": "Command Prompt",
+		"terminal.integrated.profiles.windows": {
+			"Command Prompt": {
+				"path": "C:\\Windows\\System32\\cmd.exe",
+				"args": [],
+				"icon": "terminal-cmd"
+			},
+			"PowerShell": {
+				"source": "PowerShell",
+				"icon": "terminal-powershell"
+			},
+			"Git Bash": {
+				"path": "C:\\Program Files\\Git\\bin\\bash.exe",
+				"icon": "terminal-bash"
+			}
+		},
+		"terminal.integrated.automationProfile.windows": {
+			"path": "C:\\Windows\\System32\\cmd.exe"
+		},
+		"powershell.cwd": "flight-watcher-n8n",
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"server": "localhost",
+				"port": 5434,
+				"driver": "PostgreSQL",
+				"name": "n8n-flight-db",
+				"database": "n8n-flight-watcher",
+				"username": "n8n"
+			}
+		]
+	}
+}

@@ -5,18 +5,21 @@ import { LogOut, Plane, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
+
 import { useAuth } from "@/hooks";
+import { usePathname } from "next/navigation";
 
-interface HeaderProps {
-	userEmail: string;
-}
-
-export function Header({ userEmail }: HeaderProps) {
+export function Header() {
 	const { theme, setTheme } = useTheme();
-	const { logout } = useAuth();
+	const { user, logout } = useAuth();
+	const pathname = usePathname();
+
+	// Determine if we should show the admin/dashboard link
+	const isAdmin = user?.isAdmin;
+	const isOnAdmin = pathname.startsWith("/admin");
 
 	const handleLogout = () => {
-		logout();
+		logout(); // use mutate, not mutateAsync
 	};
 
 	const toggleTheme = () => {
@@ -42,10 +45,20 @@ export function Header({ userEmail }: HeaderProps) {
 							<Plane className="h-6 w-6 text-primary" />
 						</div>
 						<div>
-							<h1 className="text-xl font-semibold">Flight Price Watcher</h1>
-							<p className="text-sm text-muted-foreground">
-								Monitoring flights for {userEmail}
-							</p>
+							{user?.isAdmin && pathname.startsWith("/admin") ? (
+								<h1 className="text-xl font-semibold">Admin Panel</h1>
+							) : user?.email ? (
+								<>
+									<h1 className="text-xl font-semibold">
+										Flight Price Watcher
+									</h1>
+									<p className="text-sm text-muted-foreground">
+										Monitoring flights for {user.email}
+									</p>
+								</>
+							) : (
+								<h1 className="text-xl font-semibold">Flight Price Watcher</h1>
+							)}
 						</div>
 					</motion.div>
 
@@ -55,6 +68,20 @@ export function Header({ userEmail }: HeaderProps) {
 						transition={{ delay: 0.2, duration: 0.3 }}
 						className="flex items-center gap-2"
 					>
+						{isAdmin && user?.email && (
+							<span className="text-sm text-muted-foreground font-mono">
+								{user.email}
+							</span>
+						)}
+
+						{/* Admin/dashboard button for admins */}
+						{isAdmin && (
+							<Button asChild variant="secondary" size="sm" className="px-3">
+								<a href={isOnAdmin ? "/dashboard" : "/admin"}>
+									{isOnAdmin ? "Dashboard" : "Admin Panel"}
+								</a>
+							</Button>
+						)}
 						<Button
 							variant="ghost"
 							size="icon"

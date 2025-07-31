@@ -1,99 +1,90 @@
 "use client";
 
-import React, {
-	createContext,
-	useEffect,
-	useState,
-	type ReactNode,
-} from "react";
-import { env } from "../env.mjs";
+import React, { createContext, ReactNode } from "react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { decodeJwt } from "@/lib/jwt";
 import type { AuthUser } from "../lib/types";
+import { useLogin } from "@/hooks/useLogin";
 
 const AUTH_TOKEN_KEY = "flight-watcher-auth";
-const TOKEN_EXPIRY_DAYS = 7;
 
-export interface AuthContextType {
+interface AuthContextType {
 	user: AuthUser | null;
-	login: (email: string, password: string) => Promise<void>;
-	logout: () => void;
 	isAuthenticated: boolean;
+	login: (params: {
+		email: string;
+		secretKey: string;
+		pin: string;
+	}) => Promise<void>;
+	logout: () => void;
 	isLoading: boolean;
+	loginError: Error | null;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
 	undefined
 );
 
-function generateToken(email: string): string {
-	// Simple token generation (email + timestamp hash)
-	const timestamp = Date.now().toString();
-	const payload = `${email}:${timestamp}`;
-	return btoa(payload);
-}
-
-function getStoredUser(): AuthUser | null {
-	if (typeof window === "undefined") return null;
-
-	try {
-		const stored = localStorage.getItem(AUTH_TOKEN_KEY);
-		if (!stored) return null;
-
-		const user: AuthUser = JSON.parse(stored);
-
-		// Check if token is expired
-		const daysSinceLogin =
-			(Date.now() - user.loginTime) / (1000 * 60 * 60 * 24);
-		if (daysSinceLogin > TOKEN_EXPIRY_DAYS) {
-			localStorage.removeItem(AUTH_TOKEN_KEY);
-			return null;
-		}
-
-		return user;
-	} catch {
-		localStorage.removeItem(AUTH_TOKEN_KEY);
-		return null;
-	}
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-	const [user, setUser] = useState<AuthUser | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+	const [token, setToken] = useLocalStorage<string | null>(
+		AUTH_TOKEN_KEY,
+		null
+	);
+	// Use the useLoginMutation hook.
+	const {
+		mutateAsync: loginMutation,
+		isPending: isLoading,
+		error: loginError,
+	} = useLogin();
 
-	useEffect(() => {
-		// Initialize user state from localStorage on mount
-		const storedUser = getStoredUser();
-		setUser(storedUser);
-		setIsLoading(false);
-	}, []);
-
-	const login = async (email: string, password: string): Promise<void> => {
-		// Validate against the shared secret password
-		if (password !== env.NEXT_PUBLIC_APP_SECRET) {
-			throw new Error("Invalid credentials");
+	const login = async ({
+		email,
+		secretKey,
+		pin,
+	}: {
+		email: string;
+		secretKey: string;
+		pin: string;
+	}) => {
+		try {
+			const token = await loginMutation({ email, secretKey, pin });
+			setToken(token);
+		} catch (error) {
+			error = error instanceof Error ? error : new Error("Login failed");
+			throw error;
 		}
-
-		const newUser: AuthUser = {
-			email,
-			token: generateToken(email),
-			loginTime: Date.now(),
-		};
-
-		localStorage.setItem(AUTH_TOKEN_KEY, JSON.stringify(newUser));
-		setUser(newUser);
 	};
 
-	const logout = (): void => {
-		localStorage.removeItem(AUTH_TOKEN_KEY);
-		setUser(null);
+	// Derive user from token
+	const user = React.useMemo(() => {
+		if (!token) return null;
+		const decoded = decodeJwt(token);
+		if (!decoded || (decoded.exp && Date.now() / 1000 > decoded.exp))
+			return null;
+		return {
+			token,
+			isAdmin: !!decoded.isAdmin,
+			email: decoded.email || "",
+		} as AuthUser;
+	}, [token]);
+
+	// Logout function
+	const logout = () => {
+		setToken(null);
 	};
 
-	const value = {
-		user,
-		login,
-		logout,
-		isAuthenticated: user !== null,
-		isLoading,
-	};
-
-	return React.createElement(AuthContext.Provider, { value }, children);
+	return (
+		<AuthContext.Provider
+			value={{
+				user,
+				isAuthenticated: !!user,
+				login,
+				logout,
+				isLoading,
+				loginError,
+			}}
+		>
+			{children}
+		</AuthContext.Provider>
+	);
 }

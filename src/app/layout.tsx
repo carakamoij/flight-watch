@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/contexts";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { QueryProvider } from "@/components/query-provider";
 import "../env.mjs"; // Validate environment variables
 
 const geistSans = Geist({
@@ -32,17 +33,19 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} bg-gradient font-sans min-h-screen antialiased`}
 			>
-				<AuthProvider>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="dark"
-						enableSystem={false}
-						disableTransitionOnChange
-					>
-						{children}
-						<Toaster />
-					</ThemeProvider>
-				</AuthProvider>
+				<QueryProvider>
+					<AuthProvider>
+						<ThemeProvider
+							attribute="class"
+							defaultTheme="dark"
+							enableSystem={false}
+							disableTransitionOnChange
+						>
+							{children}
+							<Toaster />
+						</ThemeProvider>
+					</AuthProvider>
+				</QueryProvider>
 			</body>
 		</html>
 	);
