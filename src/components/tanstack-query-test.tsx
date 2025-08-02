@@ -15,7 +15,7 @@ export function TanStackQueryTest() {
 		error: tasksError,
 		dataUpdatedAt,
 		isFetching,
-	} = useTasks(user?.email);
+	} = useTasks();
 	const [logs, setLogs] = useState<string[]>([]);
 
 	const handleTestLogin = async () => {

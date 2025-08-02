@@ -20,7 +20,7 @@ export default function AdminLayout({
 		}
 	}, [isAuthenticated, isLoading, user, router]);
 
-	if (isLoading) return <AppLoading />;
+	// if (isLoading) return <AppLoading />;
 	if (!user?.isAdmin) return null;
 
 	return (

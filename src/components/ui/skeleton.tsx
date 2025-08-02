@@ -1,5 +1,6 @@
 import React from "react";
 import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 	width?: string | number;
@@ -17,7 +18,7 @@ export function Skeleton({
 }: SkeletonProps) {
 	return (
 		<div
-			className={clsx(
+			className={cn(
 				"animate-pulse bg-muted",
 				rounded && `rounded-${rounded}`,
 				className
@@ -42,14 +43,11 @@ export function SkeletonGrid({
 	cols = 3,
 	itemWidth = "100%",
 	itemHeight = 32,
-	gap = "1rem",
+	gap = "1",
 	className,
 }: SkeletonGridProps) {
 	return (
-		<div
-			className={clsx("grid", className)}
-			style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap }}
-		>
+		<div className={cn(`grid gap-${gap} grid-cols-${cols}`, className)}>
 			{Array.from({ length: rows * cols }).map((_, i) => (
 				<Skeleton key={i} width={itemWidth} height={itemHeight} />
 			))}
@@ -72,10 +70,7 @@ export function SkeletonList({
 	className,
 }: SkeletonListProps) {
 	return (
-		<div
-			className={className}
-			style={{ display: "flex", flexDirection: "column", gap }}
-		>
+		<div className={cn(`flex flex-col gap-${gap}`, className)}>
 			{Array.from({ length: items }).map((_, i) => (
 				<Skeleton key={i} width="100%" height={itemHeight} />
 			))}

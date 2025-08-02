@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
@@ -33,6 +33,19 @@ export function DateRangePicker({
 	minDate,
 	maxDate,
 }: DateRangePickerProps) {
+	const [isMobile, setIsMobile] = useState(false);
+	useEffect(() => {
+		const handleResize = () => {
+			setIsMobile(window.innerWidth < 640);
+		};
+
+		window.addEventListener("resize", handleResize);
+		return () => {
+			window.removeEventListener("resize", handleResize);
+		};
+	}, []);
+
+	//const isMobile = window.innerWidth < 480; // Adjust the breakpoint as needed
 	return (
 		<div className={cn("grid gap-2", className)}>
 			<Popover>
@@ -64,9 +77,9 @@ export function DateRangePicker({
 				<PopoverContent
 					className="w-auto p-0 bg-popover border-border"
 					align="center"
-					side="right"
-					sideOffset={4}
-					avoidCollisions={false}
+					side={isMobile ? "bottom" : "right"}
+					sideOffset={isMobile ? 0 : -200}
+					avoidCollisions={true}
 				>
 					<Calendar
 						autoFocus
@@ -76,7 +89,7 @@ export function DateRangePicker({
 						onSelect={(newValue) =>
 							onChange(newValue as { from?: Date; to?: Date } | undefined)
 						}
-						numberOfMonths={2}
+						numberOfMonths={isMobile ? 1 : 2}
 						showOutsideDays={false}
 						fixedWeeks={false}
 						captionLayout="dropdown"

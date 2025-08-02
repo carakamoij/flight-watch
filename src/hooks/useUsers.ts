@@ -1,59 +1,38 @@
-// This file has been removed as it is no longer used in the new context-based auth flow.
+"use client";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { env } from "../env.mjs";
-import type { User, N8nResponse } from "../lib/types";
+import { getN8nApiUrl } from "../lib/n8nApiUrl";
+import type { User, N8nResponse, UserApi } from "../lib/types";
+import api from "../lib/api";
 import { useAuth } from "./useAuth";
 
 export function useUsers() {
 	const { user } = useAuth();
 	const queryClient = useQueryClient();
 
-	const usersQuery = useQuery<User[]>({
+	const usersQuery = useQuery<User[], Error>({
 		queryKey: ["users"],
 		queryFn: async () => {
 			if (!user?.token) throw new Error("Not authenticated");
-			let response: Response;
-			try {
-				response = await fetch(
-					`${env.NEXT_PUBLIC_N8N_BASE_URL}/webhook/users`,
-					{
-						headers: {
-							Authorization: `Bearer ${user.token}`,
-						},
-					}
-				);
-			} catch (err) {
-				if (process.env.NODE_ENV === "development") {
-					console.warn("Fetch users failed (network error)", err);
-				}
+			const response = await api.get<N8nResponse>(getN8nApiUrl("adminUsers"), {
+				headers: {
+					Authorization: `Bearer ${user.token}`,
+				},
+			});
+			console.log(response.data.success, response.data.users);
+			if (!response.data?.success) {
 				throw new Error(
-					"Could not connect to the user service. Please try again later."
+					response.data?.message ||
+						"Failed to fetch users. Please try again later."
 				);
 			}
-			let result: N8nResponse | null = null;
-			try {
-				result = await response.json();
-			} catch {}
-			if (!response.ok) {
-				if (process.env.NODE_ENV === "development") {
-					console.warn("Fetch users failed (network/server)", {
-						status: response.status,
-					});
-				}
-				throw new Error(
-					response.status === 404
-						? "User service is unavailable. Please try again later."
-						: response.status === 403
-						? "You are not authorized to view users. Please contact support."
-						: "Could not connect to the user service. Please try again later."
-				);
-			}
-			if (!result?.success) {
-				throw new Error(
-					result?.message || "Failed to fetch users. Please try again later."
-				);
-			}
-			return result.users as User[];
+			return (response.data.users as UserApi[]).map((user) => ({
+				...user,
+				isActive: user.is_active,
+				isAdmin: user.is_admin,
+				createdAt: user.created_at,
+				updatedAt: user.updated_at,
+			}));
 		},
 		enabled: !!user?.token || process.env.NEXT_PUBLIC_USE_MOCK_USERS === "true",
 	});
@@ -61,55 +40,31 @@ export function useUsers() {
 	const updateUserMutation = useMutation({
 		mutationFn: async (update: {
 			id: string;
-			is_active?: boolean;
-			is_admin?: boolean;
+			is_active: boolean | null;
+			is_admin: boolean | null;
 		}) => {
 			if (!user?.token) throw new Error("Not authenticated");
-			let response: Response;
-			try {
-				response = await fetch(
-					`${env.NEXT_PUBLIC_N8N_BASE_URL}/webhook/users/${update.id}`,
-					{
-						method: "PATCH",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: `Bearer ${user.token}`,
-						},
-						body: JSON.stringify(update),
-					}
-				);
-			} catch (err) {
-				if (process.env.NODE_ENV === "development") {
-					console.warn("Update user failed (network error)", err);
+			const response = await api.patch<N8nResponse>(
+				getN8nApiUrl("adminUsers"),
+				// dynamic id url in n8n - bye
+				// env.NEXT_PUBLIC_N8N_BASE_URL_TEST +
+				// 	env.NEXT_PUBLIC_N8N_ADMIN_USERS_ENDPOINT, //+ `/${update.id}/edit`,
+				//"https://n8n.carakamoij.cc/webhook-test/5cc573c8-e29e-4fa8-bc7e-9e48b74c28a4/admin/users/26/edit",
+				update,
+				{
+					headers: {
+						Authorization: `Bearer ${user.token}`,
+					},
 				}
+			);
+			console.log("updated user:", response.data);
+			if (!response.data?.success) {
 				throw new Error(
-					"Could not connect to the user service. Please try again later."
+					response.data?.message ||
+						"Failed to update user. Please try again later."
 				);
 			}
-			let result: N8nResponse | null = null;
-			try {
-				result = await response.json();
-			} catch {}
-			if (!response.ok) {
-				if (process.env.NODE_ENV === "development") {
-					console.warn("Update user failed (network/server)", {
-						status: response.status,
-					});
-				}
-				throw new Error(
-					response.status === 404
-						? "User service is unavailable. Please try again later."
-						: response.status === 403
-						? "You are not authorized to update users. Please contact support."
-						: "Could not connect to the user service. Please try again later."
-				);
-			}
-			if (!result?.success) {
-				throw new Error(
-					result?.message || "Failed to update user. Please try again later."
-				);
-			}
-			return result;
+			return response.data;
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["users"] });

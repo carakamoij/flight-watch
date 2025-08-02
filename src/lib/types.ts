@@ -52,12 +52,37 @@ export type FlightSearchParams = {
 	currency: string;
 };
 
-export type User = {
+export type UserApi = {
 	id: string;
 	email: string;
 	is_active: boolean;
-	isAdmin: boolean;
+	is_admin: boolean;
 	tasksCount: number;
 	created_at?: string;
 	updated_at?: string;
+};
+
+export type TaskApi = {
+	id: string;
+	email: string;
+	origin: string; // Airport name like "Luqa"
+	destination: string; // Airport name like "Catania"
+	outbound_date: string; // YYYY-MM-DD format
+	return_date: string; // YYYY-MM-DD format
+	price_threshold: number;
+	check_outbound: boolean;
+	check_return: boolean;
+	currency: string;
+	created_at: string; // ISO string
+	is_active: boolean;
+};
+
+export type User = {
+	id: string;
+	email: string;
+	isActive: boolean;
+	isAdmin: boolean;
+	tasksCount: number;
+	createdAt?: string;
+	updatedAt?: string;
 };

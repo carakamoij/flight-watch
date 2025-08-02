@@ -1,9 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LogOut, Plane, Moon, Sun } from "lucide-react";
+import { LogOut, Plane, Moon, Sun, Menu } from "lucide-react";
+import {
+	DropdownMenu,
+	DropdownMenuTrigger,
+	DropdownMenuContent,
+	DropdownMenuLabel,
+	DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
-
 import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/hooks";
@@ -52,7 +58,7 @@ export function Header() {
 									<h1 className="text-xl font-semibold">
 										Flight Price Watcher
 									</h1>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-sm text-muted-foreground hidden sm:block">
 										Monitoring flights for {user.email}
 									</p>
 								</>
@@ -62,19 +68,18 @@ export function Header() {
 						</div>
 					</motion.div>
 
+					{/* Desktop/tablet button group: visible from md and up */}
 					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						transition={{ delay: 0.2, duration: 0.3 }}
-						className="flex items-center gap-2"
+						className="hidden md:flex items-center gap-2"
 					>
 						{isAdmin && user?.email && (
 							<span className="text-sm text-muted-foreground font-mono">
 								{user.email}
 							</span>
 						)}
-
-						{/* Admin/dashboard button for admins */}
 						{isAdmin && (
 							<Button asChild variant="secondary" size="sm" className="px-3">
 								<a href={isOnAdmin ? "/dashboard" : "/admin"}>
@@ -94,7 +99,6 @@ export function Header() {
 								<Moon className="h-4 w-4" />
 							)}
 						</Button>
-
 						<Button
 							variant="outline"
 							onClick={handleLogout}
@@ -104,6 +108,61 @@ export function Header() {
 							Logout
 						</Button>
 					</motion.div>
+
+					{/* Mobile menu: visible below md */}
+					<div className="flex md:hidden items-center gap-2">
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<motion.button
+									type="button"
+									className="rounded-full bg-transparent p-0 border-0"
+									whileTap={{ scale: 0.9 }}
+									initial={{ rotate: 0 }}
+									animate={{ rotate: theme === "dark" ? 180 : 0 }}
+									transition={{ type: "spring", stiffness: 300, damping: 20 }}
+								>
+									<motion.span
+										initial={{ rotate: 0 }}
+										animate={{ rotate: theme === "dark" ? 180 : 0 }}
+										transition={{ type: "spring", stiffness: 300, damping: 20 }}
+									>
+										<Menu className="h-5 w-5" />
+									</motion.span>
+								</motion.button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end" asChild>
+								<motion.div
+									initial={{ opacity: 0, scale: 0.95, y: -10 }}
+									animate={{ opacity: 1, scale: 1, y: 0 }}
+									exit={{ opacity: 0, scale: 0.95, y: -10 }}
+									transition={{
+										duration: 0.2,
+										type: "spring",
+										stiffness: 300,
+										damping: 25,
+									}}
+								>
+									{isAdmin && user?.email && (
+										<DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+									)}
+									{isAdmin && (
+										<DropdownMenuItem asChild>
+											<a href={isOnAdmin ? "/dashboard" : "/admin"}>
+												{isOnAdmin ? "Dashboard" : "Admin Panel"}
+											</a>
+										</DropdownMenuItem>
+									)}
+									<DropdownMenuItem onClick={toggleTheme}>
+										{theme === "dark" ? "Light Mode" : "Dark Mode"}
+									</DropdownMenuItem>
+									<DropdownMenuItem onClick={handleLogout}>
+										<LogOut className="h-4 w-4 mr-2" />
+										Logout
+									</DropdownMenuItem>
+								</motion.div>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
 				</div>
 			</div>
 		</motion.header>
