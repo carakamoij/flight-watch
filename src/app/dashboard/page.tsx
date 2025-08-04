@@ -2,12 +2,17 @@
 
 import { useAuth } from "@/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import {
+	useEffect,
+	useState,
+	useCallback,
+	startTransition,
+	useRef,
+} from "react";
 import { motion } from "framer-motion";
 import { FlightForm } from "@/components/flight-form";
 import { useTasks } from "@/hooks/useTasks";
-import { getAirportName } from "@/lib/data";
-import { Loader2, Plane, MapPin } from "lucide-react";
+import { Loader2, Plane } from "lucide-react";
 import {
 	Card,
 	CardHeader,
@@ -15,10 +20,63 @@ import {
 	CardDescription,
 	CardContent,
 } from "@/components/ui/card";
+import { DashboardTasksPagination } from "@/components/dashboard-tasks-pagination";
+import { Task } from "@/lib/types";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
 	const { isAuthenticated, isLoading, user } = useAuth();
+	const {
+		isLoading: isLoadingTasks,
+		data: tasks,
+		isError: tasksError,
+		deleteTask,
+	} = useTasks();
 	const router = useRouter();
+	const [highlightTaskId, setHighlightTaskId] = useState<number | null>(null);
+	const [deletingTaskId, setDeletingTaskId] = useState<number | null>(null);
+	const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+	const [task, setTask] = useState<Task | null>(null);
+	const lastDeletedTaskId = useRef<number | null>(null);
+
+	// Callback to be passed to FlightForm to notify of new task
+	const handleTaskSaved = useCallback((taskId: number) => {
+		setHighlightTaskId(taskId);
+		setSelectedTaskId(null); // Clear selection after save
+		setTask(null); // Clear form
+	}, []);
+
+	// Handle modify task
+	const handleModifyTask = useCallback((taskToModify: Task) => {
+		setTask(taskToModify);
+		setSelectedTaskId(taskToModify.id);
+	}, []);
+
+	//handle delete task. handle duplicate toast using a ref to track last deleted task ID
+	async function handleDeleteTask(taskId: number) {
+		console.log("handleDeleteTask called with ID:", taskId);
+		startTransition(async () => {
+			try {
+				setDeletingTaskId(taskId);
+				lastDeletedTaskId.current = taskId;
+				await deleteTask(taskId);
+
+				// Show toast here - only once per unique task ID
+				if (lastDeletedTaskId.current === taskId) {
+					toast.success("Task deleted successfully");
+					lastDeletedTaskId.current = null; // Reset to prevent duplicates
+				}
+			} catch (error) {
+				console.log("deleteTask failed:", error);
+				lastDeletedTaskId.current = null; // Reset on error
+				toast.error(
+					error instanceof Error ? error.message : "Failed to delete task"
+				);
+			} finally {
+				setDeletingTaskId(null);
+			}
+		});
+	}
 
 	useEffect(() => {
 		if (!isLoading && !isAuthenticated) {
@@ -26,15 +84,8 @@ export default function DashboardPage() {
 		}
 	}, [isLoading, isAuthenticated, router]);
 
-	// Load tasks for the current user (must be before any conditional return)
-	const {
-		data: tasks,
-		isLoading: isLoadingTasks,
-		isError: hasTasksError,
-	} = useTasks();
-
 	if (!isAuthenticated) return null;
-	console.log(tasks);
+
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 20 }}
@@ -43,7 +94,7 @@ export default function DashboardPage() {
 			className="space-y-6"
 		>
 			<Card className="bg-gradient-card backdrop-blur-sm border-border/50 shadow-2xl container mx-auto max-w-4xl mt-4">
-				<CardHeader className="pb-4">
+				<CardHeader className="pb-2">
 					<div className="flex items-center gap-3">
 						<div className="bg-primary/15 w-10 h-10 rounded-full flex items-center justify-center border border-primary/20">
 							<Plane className="w-5 h-5 text-primary" />
@@ -72,54 +123,42 @@ export default function DashboardPage() {
 								</span>
 							</div>
 						) : (
-							<div className="space-y-2">
-								{tasks == null || tasks.length === 0 ? (
-									<div className="text-center py-6">
-										<Plane className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
-										<p className="text-foreground mb-1">
-											No scheduled monitoring tasks found
-										</p>
-										<p className="text-muted-foreground text-sm">
-											Create your first flight price alert below
-										</p>
-									</div>
-								) : (
-									tasks.map((task, index) => (
-										<Card key={index} className="bg-secondary/50 border-border">
-											<CardContent className="p-3">
-												<div className="flex items-center justify-between">
-													<div className="flex items-center gap-3">
-														<MapPin className="w-4 h-4 text-primary" />
-														<span className="text-foreground">
-															{getAirportName(task.origin)} →{" "}
-															{getAirportName(task.destination)}
-														</span>
-													</div>
-													<div className="text-muted-foreground text-sm">
-														€{task.priceThreshold} threshold
-													</div>
-												</div>
-												<div className="mt-2 text-muted-foreground text-sm">
-													{task.outboundDate} to {task.returnDate}
-												</div>
-											</CardContent>
-										</Card>
-									))
-								)}
-								{hasTasksError && (
-									<Card className="bg-destructive/10 border-destructive/20">
-										<CardContent className="p-4 text-center">
-											<p className="text-destructive text-sm">
-												Failed to load existing tasks
-											</p>
-										</CardContent>
-									</Card>
-								)}
-							</div>
+							<DashboardTasksPagination
+								tasks={tasks ?? []}
+								isError={tasksError}
+								highlightTaskId={highlightTaskId}
+								deletingTaskId={deletingTaskId}
+								selectedTaskId={selectedTaskId}
+								onModifyTask={handleModifyTask}
+								onDeleteTask={handleDeleteTask}
+							/>
 						)}
 					</div>
+					{/* Divider */}
+					<div className="my-6">
+						<hr className="border-t border-border/40" />
+					</div>
 					{/* Flight Form */}
-					<FlightForm userEmail={user?.email ?? ""} />
+					<motion.div
+						key={task ? task.id : "add"}
+						initial={{ opacity: 0, y: 8 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: 8 }}
+						transition={{ duration: 0.25, ease: "easeOut" }}
+					>
+						<h3 className="text-lg font-semibold text-foreground mb-3">
+							{task ? "Edit Flight Monitor" : "Add New Flight Monitor"}
+						</h3>
+						<FlightForm
+							userEmail={user?.email ?? ""}
+							onTaskSaved={handleTaskSaved}
+							task={task}
+							onClearSelection={() => {
+								setTask(null);
+								setSelectedTaskId(null);
+							}}
+						/>
+					</motion.div>
 				</CardContent>
 			</Card>
 		</motion.div>

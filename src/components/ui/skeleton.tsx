@@ -1,5 +1,4 @@
 import React from "react";
-import clsx from "clsx";
 import { cn } from "@/lib/utils";
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {

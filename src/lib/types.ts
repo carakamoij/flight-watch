@@ -4,10 +4,11 @@ export type N8nResponse = {
 	error?: string;
 	message: string;
 	token?: string; // Optional token for auth responses
+	data?: Task | User | User[] | { id: number; [key: string]: unknown }; // Generic data field for tasks or users
 	[key: string]: unknown; // for extra fields if needed
 };
 export type Task = {
-	id: string;
+	id: number;
 	email: string;
 	origin: string; // Airport name like "Luqa"
 	destination: string; // Airport name like "Catania"
@@ -63,7 +64,7 @@ export type UserApi = {
 };
 
 export type TaskApi = {
-	id: string;
+	id: number;
 	email: string;
 	origin: string; // Airport name like "Luqa"
 	destination: string; // Airport name like "Catania"

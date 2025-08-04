@@ -6,11 +6,12 @@ import { getN8nApiUrl } from "../lib/n8nApiUrl";
 import type { Task, N8nResponse, TaskApi } from "../lib/types";
 import api from "../lib/api";
 import { useAuth } from "./useAuth";
-import { is } from "date-fns/locale";
 
 export function useTasks() {
 	const { user } = useAuth();
-	return useQuery<Task[], Error>({
+	const queryClient = useQueryClient();
+
+	const tasksQuery = useQuery<Task[], Error>({
 		queryKey: ["tasks", user?.email],
 		queryFn: async () => {
 			if (!user?.token) throw new Error("Not authenticated");
@@ -29,6 +30,7 @@ export function useTasks() {
 
 			return ((response.data.tasks || []) as TaskApi[]).map((task) => ({
 				...task,
+				id: task.id, // Ensure id is a number
 				outboundDate: task.outbound_date, // YYYY-MM-DD format
 				returnDate: task.return_date, // YYYY-MM-DD format
 				priceThreshold: task.price_threshold,
@@ -41,12 +43,8 @@ export function useTasks() {
 		enabled: !!user?.token,
 		staleTime: 2 * 60 * 1000,
 	});
-}
 
-export function useCreateTask() {
-	const { user } = useAuth();
-	const queryClient = useQueryClient();
-	return useMutation({
+	const useCreateTask = useMutation({
 		mutationFn: async (task: Task) => {
 			if (!user?.token) throw new Error("Not authenticated");
 			const response = await api.post<N8nResponse>(
@@ -70,12 +68,8 @@ export function useCreateTask() {
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
 		},
 	});
-}
 
-export function useUpdateTask() {
-	const { user } = useAuth();
-	const queryClient = useQueryClient();
-	return useMutation({
+	const useUpdateTask = useMutation({
 		mutationFn: async (task: Task) => {
 			if (!user?.token) throw new Error("Not authenticated");
 			const response = await api.put<N8nResponse>(getN8nApiUrl("tasks"), task, {
@@ -95,13 +89,9 @@ export function useUpdateTask() {
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
 		},
 	});
-}
 
-export function useDeleteTask() {
-	const { user } = useAuth();
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: async (id: string) => {
+	const useDeleteTask = useMutation({
+		mutationFn: async (id: number) => {
 			if (!user?.token) throw new Error("Not authenticated");
 			const response = await api.delete<N8nResponse>(getN8nApiUrl("tasks"), {
 				headers: {
@@ -121,4 +111,14 @@ export function useDeleteTask() {
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
 		},
 	});
+
+	return {
+		...tasksQuery,
+		createTask: useCreateTask.mutateAsync,
+		updateTask: useUpdateTask.mutateAsync,
+		deleteTask: useDeleteTask.mutateAsync,
+		isLoadingTasks: tasksQuery.isLoading,
+		isError: tasksQuery.isError,
+		error: tasksQuery.error,
+	};
 }
